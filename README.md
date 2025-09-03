@@ -53,7 +53,7 @@ cp .env.example .env
 `.env` 파일에서 API 서버 URL을 설정하세요:
 
 ```env
-VITE_API_BASE_URL=http://localhost:5130/api
+VITE_API_BASE_URL=http://localhost:5140/api
 ```
 
 ### 3. 개발 서버 실행
@@ -237,7 +237,7 @@ npm run test:coverage
 #### 1. API 연결 오류
 ```bash
 # 백엔드 서버가 실행 중인지 확인
-curl http://localhost:5130/api/documents
+curl http://localhost:5140/api/documents
 
 # CORS 설정 확인
 # vite.config.js의 proxy 설정 검토
