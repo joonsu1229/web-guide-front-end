@@ -146,29 +146,29 @@ export default {
         },
         {
           id: 2,
-          title: '채용정보 관리',
-          description: '채용 공고 작성부터 지원자 관리까지, 효율적인 채용 프로세스를 구축하세요.',
+          title: '포탈(Portal)',
+          description: '게시판, 업무지원 등 포틀릿으로 개인화된 대시보드 홈화면으로 배치해보세요.',
           icon: 'DocumentIcon',
           className: 'banner-success',
-          tags: ['채용', '관리'],
+          tags: ['포틀릿', '조직도'],
           section: 'job-management'
         },
         {
           id: 3,
-          title: '문서 및 검색',
-          description: '문서 업로드, 분류, 고급 검색 기능으로 필요한 정보를 빠르게 찾으세요.',
+          title: '전자결재',
+          description: '양식 생성기를 통해 손쉽게 양식을 만들 수 있고, 검색 및 관리 기능도 함께 제공합니다.',
           icon: 'SearchIcon',
           className: 'banner-info',
-          tags: ['문서', '검색'],
+          tags: ['문서함 분류', '결재 알림'],
           section: 'search'
         },
         {
           id: 4,
-          title: '분석 및 통계',
-          description: '데이터 시각화와 리포트 기능으로 인사이트를 얻고 의사결정에 활용하세요.',
+          title: 'e-HR',
+          description: '52시간 근퇴 관리 기능으로 구성원의 연차를 관리해보세요.',
           icon: 'AnalyticsIcon',
           className: 'banner-warning',
-          tags: ['분석', '리포트'],
+          tags: ['출퇴근', '연차 관리'],
           section: 'analytics'
         }
       ]
@@ -228,7 +228,7 @@ export default {
 }
 
 .banner-card {
-  background: var(--card-bg);
+  background: #ffffff;
   border-radius: 16px;
   padding: 24px;
   display: flex;
@@ -236,7 +236,7 @@ export default {
   gap: 20px;
   cursor: pointer;
   transition: all 0.3s ease;
-  border: 2px solid transparent;
+  border: 2px solid #f1f3f4;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   position: relative;
   overflow: hidden;
@@ -254,8 +254,33 @@ export default {
 }
 
 .banner-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
+}
+
+.banner-card:hover .banner-icon {
+  transform: rotate(5deg) scale(1.1);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: rotate(5deg) scale(1.1);
+  }
+  50% {
+    transform: rotate(5deg) scale(1.15);
+  }
+}
+
+.guide-banners.dark-mode .banner-card {
+  background: #374151;
+  border-color: #4b5563;
+}
+
+.guide-banners.dark-mode .banner-tag {
+  background: #1e3a8a;
+  color: #93c5fd;
+  border-color: #3b82f6;
 }
 
 .banner-primary {
@@ -285,6 +310,7 @@ export default {
   color: white;
   border-radius: 12px;
   opacity: 0.9;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .banner-content {
@@ -317,12 +343,13 @@ export default {
 }
 
 .banner-tag {
-  background: var(--hover-bg);
-  color: var(--text-color);
-  padding: 4px 8px;
+  background: #e3f2fd;
+  color: #1976d2;
+  padding: 4px 10px;
   border-radius: 12px;
   font-size: 12px;
   font-weight: 500;
+  border: 1px solid #bbdefb;
 }
 
 .banner-arrow {

@@ -126,6 +126,7 @@ export default {
   max-width: 600px;
   margin: 0 auto;
   position: relative;
+  padding: 4px 0;
 }
 
 .search-wrapper {
@@ -146,7 +147,8 @@ export default {
 
 .search-input-group:focus-within {
   border-color: #007BFF;
-  box-shadow: 0 4px 16px rgba(0, 123, 255, 0.15);
+  box-shadow: 0 6px 20px rgba(0, 123, 255, 0.2);
+  transform: translateY(-2px);
 }
 
 .search-icon {
