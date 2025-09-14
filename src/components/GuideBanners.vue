@@ -1,0 +1,351 @@
+<template>
+  <div class="guide-banners">
+    <div class="banner-container">
+      <h2 class="banners-title">웹 가이드를 시작하셨나요?</h2>
+      <p class="banners-subtitle">단계별 가이드로 쉽게 시작해보세요</p>
+
+      <div class="banners-grid">
+        <div
+          v-for="banner in banners"
+          :key="banner.id"
+          class="banner-card"
+          :class="banner.className"
+          @click="selectBanner(banner)"
+        >
+          <div class="banner-icon">
+            <component :is="banner.icon" />
+          </div>
+          <div class="banner-content">
+            <h3 class="banner-title">{{ banner.title }}</h3>
+            <p class="banner-description">{{ banner.description }}</p>
+            <div class="banner-tags">
+              <span
+                v-for="tag in banner.tags"
+                :key="tag"
+                class="banner-tag"
+              >
+                {{ tag }}
+              </span>
+            </div>
+          </div>
+          <div class="banner-arrow">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path
+                d="M9 18L15 12L9 6"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+const RocketIcon = {
+  template: `
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+      <path
+        d="M12 2L13.09 8.26L22 9L13.09 15.74L12 22L10.91 15.74L2 9L10.91 8.26L12 2Z"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        fill="currentColor"
+      />
+    </svg>
+  `
+}
+
+const DocumentIcon = {
+  template: `
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+      <path
+        d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+      <path
+        d="M14 2V8H20M16 13H8M16 17H8M10 9H8"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+    </svg>
+  `
+}
+
+const SearchIcon = {
+  template: `
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+      <path
+        d="M21 21L16.514 16.506M19 10.5C19 15.194 15.194 19 10.5 19S2 15.194 2 10.5S5.806 2 10.5 2S19 5.806 19 10.5Z"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+    </svg>
+  `
+}
+
+const AnalyticsIcon = {
+  template: `
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+      <path
+        d="M3 3V21H21M7 14L12 9L16 13L21 8"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+      <path
+        d="M21 8V13H16"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+    </svg>
+  `
+}
+
+export default {
+  name: 'GuideBanners',
+  components: {
+    RocketIcon,
+    DocumentIcon,
+    SearchIcon,
+    AnalyticsIcon
+  },
+  emits: ['banner-select'],
+  data() {
+    return {
+      banners: [
+        {
+          id: 1,
+          title: '시작하기',
+          description: '웹 가이드 시스템을 처음 사용하시나요? 기본 기능부터 차근차근 알아보세요.',
+          icon: 'RocketIcon',
+          className: 'banner-primary',
+          tags: ['기초', '튜토리얼'],
+          section: 'getting-started'
+        },
+        {
+          id: 2,
+          title: '채용정보 관리',
+          description: '채용 공고 작성부터 지원자 관리까지, 효율적인 채용 프로세스를 구축하세요.',
+          icon: 'DocumentIcon',
+          className: 'banner-success',
+          tags: ['채용', '관리'],
+          section: 'job-management'
+        },
+        {
+          id: 3,
+          title: '문서 및 검색',
+          description: '문서 업로드, 분류, 고급 검색 기능으로 필요한 정보를 빠르게 찾으세요.',
+          icon: 'SearchIcon',
+          className: 'banner-info',
+          tags: ['문서', '검색'],
+          section: 'search'
+        },
+        {
+          id: 4,
+          title: '분석 및 통계',
+          description: '데이터 시각화와 리포트 기능으로 인사이트를 얻고 의사결정에 활용하세요.',
+          icon: 'AnalyticsIcon',
+          className: 'banner-warning',
+          tags: ['분석', '리포트'],
+          section: 'analytics'
+        }
+      ]
+    }
+  },
+  methods: {
+    selectBanner(banner) {
+      this.$emit('banner-select', banner.section)
+    }
+  }
+}
+</script>
+
+<style scoped>
+.guide-banners {
+  margin: 40px 0;
+}
+
+.banner-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.banners-title {
+  font-size: 32px;
+  font-weight: 700;
+  color: #202936;
+  text-align: center;
+  margin: 0 0 8px 0;
+}
+
+.banners-subtitle {
+  font-size: 18px;
+  color: #6c757d;
+  text-align: center;
+  margin: 0 0 40px 0;
+}
+
+.banners-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+}
+
+.banner-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  position: relative;
+  overflow: hidden;
+}
+
+.banner-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: currentColor;
+  opacity: 0.8;
+}
+
+.banner-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.banner-primary {
+  color: #007BFF;
+}
+
+.banner-success {
+  color: #28a745;
+}
+
+.banner-info {
+  color: #17a2b8;
+}
+
+.banner-warning {
+  color: #ffc107;
+}
+
+.banner-icon {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: currentColor;
+  color: white;
+  border-radius: 12px;
+  opacity: 0.9;
+}
+
+.banner-content {
+  flex: 1;
+}
+
+.banner-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #202936;
+  margin: 0 0 8px 0;
+}
+
+.banner-description {
+  font-size: 14px;
+  color: #6c757d;
+  line-height: 1.5;
+  margin: 0 0 12px 0;
+}
+
+.banner-tags {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.banner-tag {
+  background: #f8f9fa;
+  color: #495057;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.banner-arrow {
+  color: #adb5bd;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.banner-card:hover .banner-arrow {
+  color: currentColor;
+  transform: translateX(4px);
+}
+
+@media (max-width: 768px) {
+  .banner-container {
+    padding: 0 16px;
+  }
+
+  .banners-title {
+    font-size: 28px;
+  }
+
+  .banners-subtitle {
+    font-size: 16px;
+  }
+
+  .banners-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .banner-card {
+    padding: 20px;
+    gap: 16px;
+  }
+
+  .banner-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .banner-title {
+    font-size: 18px;
+  }
+
+  .banner-description {
+    font-size: 13px;
+  }
+}
+</style>
