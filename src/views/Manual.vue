@@ -4,9 +4,9 @@
       <div class="hero-section">
         <div class="hero-content">
           <div class="hero-header">
-            <h1 class="hero-title">워크쓰루 가이드</h1>
+            <h1 class="hero-title">워크쓰루 매뉴얼</h1>
           </div>
-          <p class="hero-subtitle">효율적인 업무 관리를 위한 통합 가이드</p>
+          <p class="hero-subtitle">기업 협업 환경에 최적화된 그룹웨어, 워크쓰루</p>
           <SearchBar @search="handleSearch" :isDark="isDarkMode" />
         </div>
       </div>
@@ -97,7 +97,7 @@ export default {
 <style scoped>
 .manual-container {
   min-height: 100vh;
-  background-color: #f8f9fa;
+  background-color: #ffffff;
   transition: all 0.3s ease;
 }
 

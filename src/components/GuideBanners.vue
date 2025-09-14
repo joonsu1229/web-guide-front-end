@@ -1,7 +1,7 @@
 <template>
   <div class="guide-banners" :class="{ 'dark-mode': isDark }">
     <div class="banner-container">
-      <h2 class="banners-title">웹 가이드를 시작하셨나요?</h2>
+      <h2 class="banners-title">워크쓰루를 시작하셨나요?</h2>
       <p class="banners-subtitle">단계별 가이드로 쉽게 시작해보세요</p>
 
       <div class="banners-grid">
@@ -185,6 +185,9 @@ export default {
 <style scoped>
 .guide-banners {
   margin: 40px 0;
+  background-color: #ffffff;
+  padding: 40px 0;
+  border-radius: 16px;
 }
 
 .banner-container {
@@ -212,6 +215,10 @@ export default {
 
 .guide-banners.dark-mode .banners-subtitle {
   color: #9ca3af;
+}
+
+.guide-banners.dark-mode {
+  background-color: #2d3748;
 }
 
 .banners-grid {
