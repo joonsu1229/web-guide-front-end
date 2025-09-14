@@ -1,5 +1,5 @@
 <template>
-  <main class="main-content">
+  <main class="main-content" :class="{ 'dark-mode': isDark }">
     <div class="breadcrumb">
       <span>사용자 매뉴얼</span>
       <span class="separator">></span>
@@ -195,6 +195,10 @@ export default {
     activeSection: {
       type: String,
       default: 'overview'
+    },
+    isDark: {
+      type: Boolean,
+      default: false
     }
   },
   data() {
@@ -291,9 +295,9 @@ export default {
 }
 
 .breadcrumb {
-  background: #fff;
+  background: var(--card-bg);
   padding: 16px 32px;
-  border-bottom: 1px solid #e9ecef;
+  border-bottom: 1px solid var(--border-color);
   font-size: 14px;
   color: #6c757d;
 }
@@ -324,9 +328,9 @@ export default {
 }
 
 .toc-container {
-  background: #fff;
+  background: var(--card-bg);
   border-radius: 8px;
-  border: 1px solid #e9ecef;
+  border: 1px solid var(--border-color);
   padding: 20px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
@@ -366,8 +370,8 @@ export default {
 }
 
 .toc-link:hover {
-  background-color: #f8f9fa;
-  color: #495057;
+  background-color: var(--hover-bg);
+  color: var(--text-color);
 }
 
 .toc-item.active .toc-link {
@@ -379,7 +383,7 @@ export default {
 }
 
 .content-section {
-  background: #fff;
+  background: var(--card-bg);
   border-radius: 8px;
   padding: 32px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
@@ -387,14 +391,14 @@ export default {
 
 .content-section h1 {
   margin: 0 0 24px 0;
-  color: #212529;
+  color: var(--text-color);
   font-size: 28px;
   font-weight: 700;
 }
 
 .content-section h3 {
   margin: 24px 0 12px 0;
-  color: #495057;
+  color: var(--text-color);
   font-size: 18px;
   font-weight: 600;
 }

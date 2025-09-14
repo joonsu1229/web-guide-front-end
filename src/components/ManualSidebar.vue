@@ -1,5 +1,5 @@
 <template>
-  <div class="sidebar">
+  <div class="sidebar" :class="{ 'dark-mode': isDark }">
     <nav class="sidebar-nav">
       <div class="nav-section">
         <h3 class="nav-section-title collapsible" @click="toggleSection('getting-started')">
@@ -62,6 +62,10 @@ export default {
     activeSection: {
       type: String,
       default: 'overview'
+    },
+    isDark: {
+      type: Boolean,
+      default: false
     }
   },
   emits: ['section-change'],
@@ -88,8 +92,8 @@ export default {
 <style scoped>
 .sidebar {
   width: 280px;
-  background: #fff;
-  border-right: 1px solid #e9ecef;
+  background: var(--card-bg);
+  border-right: 1px solid var(--border-color);
   overflow-y: auto;
   position: sticky;
   top: 0;
@@ -124,8 +128,8 @@ export default {
 }
 
 .nav-section-title.collapsible:hover {
-  background-color: #f8f9fa;
-  color: #212529;
+  background-color: var(--hover-bg);
+  color: var(--text-color);
 }
 
 .toggle-icon {
@@ -155,8 +159,8 @@ export default {
 }
 
 .nav-item:hover {
-  background-color: #f8f9fa;
-  color: #495057;
+  background-color: var(--hover-bg);
+  color: var(--text-color);
 }
 
 .nav-item.active {
