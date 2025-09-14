@@ -3,10 +3,20 @@ import SearchView from '@/views/SearchView.vue'
 import DocumentView from '@/views/DocumentView.vue'
 import AnalyticsView from '@/views/AnalyticsView.vue'
 import JobManagement from '@/views/JobManagement.vue'
+import Manual from '@/views/Manual.vue'
 
 const routes = [
-  {
+    {
     path: '/',
+    name: 'Manual',
+    component: Manual,
+    meta: {
+      title: '사용자 매뉴얼',
+      icon: 'document'
+    }
+  },
+  {
+    path: '/JobManagement',
     name: 'JobManagement',
     component: JobManagement,
     meta: {
