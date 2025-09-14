@@ -9,9 +9,10 @@
             <div class="flex justify-between items-center h-16">
               <!-- Logo -->
               <div class="flex items-center">
-                <div class="flex-shrink-0">
-                  <h1 class="text-2xl font-bold text-gray-900">
-                    <img src="/jsai_logo.png" alt="GUIDE" style="width: 100px; height: 80px; vertical-align: middle;">
+                <div class="flex-shrink-0 flex items-center gap-3">
+                  <img src="/src/assets/workthrough-icon.png" alt="워크쓰루 로고" class="logo-icon" />
+                  <h1 class="text-2xl font-bold logo-text">
+                    워크쓰루 헬프센터
                   </h1>
                 </div>
               </div>
@@ -257,8 +258,28 @@ const applyDarkMode = () => {
 }
 
 /* Logo Styles */
-.dark-mode h1 {
+.logo-icon {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  transition: opacity 0.3s ease;
+}
+
+.logo-text {
+  color: var(--text-color);
+  font-size: 1.5rem;
+  font-weight: 600;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif;
+  letter-spacing: -0.025em;
+  transition: color 0.3s ease;
+}
+
+.dark-mode .logo-text {
   color: #e9ecef;
+}
+
+.dark-mode .logo-icon {
+  opacity: 0.9;
 }
 
 /* Mobile Menu Styles */

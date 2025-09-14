@@ -136,7 +136,7 @@ export default {
   position: relative;
   display: flex;
   align-items: center;
-  background: var(--card-bg);
+  background: #ffffff;
   border: 2px solid var(--border-color);
   border-radius: 50px;
   padding: 0 20px;
@@ -162,7 +162,7 @@ export default {
   outline: none;
   padding: 16px 0;
   font-size: 16px;
-  color: var(--text-color);
+  color: #212529;
   background: transparent;
 }
 
@@ -194,8 +194,8 @@ export default {
   top: 100%;
   left: 0;
   right: 0;
-  background: var(--card-bg);
-  border: 1px solid var(--border-color);
+  background: #ffffff;
+  border: 1px solid #e9ecef;
   border-radius: 12px;
   margin-top: 8px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
@@ -218,7 +218,7 @@ export default {
 }
 
 .suggestion-item:hover {
-  background-color: var(--hover-bg);
+  background-color: #f8f9fa;
 }
 
 .suggestion-icon {
@@ -229,7 +229,7 @@ export default {
 }
 
 .suggestion-text {
-  color: var(--text-color);
+  color: #212529;
   font-size: 14px;
 }
 
