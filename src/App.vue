@@ -9,7 +9,7 @@
             <div class="flex justify-between items-center h-16">
               <!-- Logo -->
               <div class="flex items-center">
-                <div class="flex-shrink-0 flex items-center gap-3">
+                <div class="flex-shrink-0 flex items-center gap-3 logo-container">
                   <img src="/src/assets/workthrough-icon.png" alt="워크쓰루 로고" class="logo-icon" />
                   <h1 class="text-2xl font-bold logo-text">
                     워크쓰루 헬프센터
@@ -92,7 +92,7 @@
         <!-- Main Content -->
         <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <router-view v-slot="{ Component }">
-            <transition name="page-fade" mode="out-in">
+            <transition name="page-slide" mode="out-in">
               <component :is="Component" :isDark="isDarkMode" />
             </transition>
           </router-view>
@@ -103,13 +103,7 @@
           <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div class="flex flex-col md:flex-row justify-between items-center">
               <div class="text-sm text-gray-500">
-                © 2024 HybridSearch. Spring Boot + Vue.js로 구현된 하이브리드 검색 시스템
-              </div>
-              <div class="flex items-center space-x-4 mt-4 md:mt-0">
-                <n-tag size="small" type="info">Java 21</n-tag>
-                <n-tag size="small" type="success">Spring Boot</n-tag>
-                <n-tag size="small" type="warning">Vue 3</n-tag>
-                <n-tag size="small" type="error">LangChain</n-tag>
+                © 2025 워크쓰루 매뉴얼 / 문의 : 1566-4014
               </div>
             </div>
           </div>
@@ -282,6 +276,19 @@ const applyDarkMode = () => {
   opacity: 0.9;
 }
 
+.logo-container {
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.logo-container:hover {
+  transform: scale(1.05);
+}
+
+.logo-container:hover .logo-icon {
+  transform: rotate(-5deg);
+}
+
 /* Mobile Menu Styles */
 .mobile-menu-container {
   border-top: 1px solid var(--border-color);
@@ -300,13 +307,27 @@ const applyDarkMode = () => {
 }
 
 /* Page Transition Styles */
-.page-fade-enter-active,
-.page-fade-leave-active {
-  transition: opacity 0.3s ease;
+.page-slide-enter-active {
+  transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
-.page-fade-enter-from,
-.page-fade-leave-to {
+.page-slide-leave-active {
+  transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.page-slide-enter-from {
   opacity: 0;
+  transform: translateX(50px) scale(0.98);
+}
+
+.page-slide-leave-to {
+  opacity: 0;
+  transform: translateX(-30px) scale(1.02);
+}
+
+.page-slide-enter-to,
+.page-slide-leave-from {
+  opacity: 1;
+  transform: translateX(0) scale(1);
 }
 </style>

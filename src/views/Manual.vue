@@ -2,17 +2,26 @@
   <div class="manual-container" :class="{ 'dark-mode': isDarkMode }">
     <div v-if="showMainPage" class="main-page">
       <div class="hero-section">
-        <div class="hero-content">
+        <div class="hero-content animate-fade-in">
           <div class="hero-header">
-            <h1 class="hero-title">워크쓰루 매뉴얼</h1>
+            <h1 class="hero-title animate-slide-up">워크쓰루 매뉴얼</h1>
           </div>
-          <p class="hero-subtitle">기업 협업 환경에 최적화된 그룹웨어, 워크쓰루</p>
-          <SearchBar @search="handleSearch" :isDark="isDarkMode" />
+          <p class="hero-subtitle animate-slide-up delay-1">기업 협업 환경에 최적화된 그룹웨어, 워크쓰루</p>
+          <div class="animate-slide-up delay-2">
+            <SearchBar @search="handleSearch" :isDark="isDarkMode" />
+          </div>
         </div>
       </div>
 
-      <NoticeBanner :isDark="isDarkMode" />
-      <GuideBanners @banner-select="handleBannerSelect" :isDark="isDarkMode" />
+      <div class="scroll-reveal" ref="notice">
+        <NoticeBanner :isDark="isDarkMode" />
+      </div>
+      <div class="scroll-reveal" ref="banners">
+        <GuideBanners @banner-select="handleBannerSelect" :isDark="isDarkMode" />
+      </div>
+      <div class="scroll-reveal" ref="faq">
+        <FrequentlyAskedQuestions :isDark="isDarkMode" />
+      </div>
     </div>
 
     <div v-else class="guide-content">
@@ -47,6 +56,7 @@ import ManualContent from '@/components/ManualContent.vue'
 import SearchBar from '@/components/SearchBar.vue'
 import NoticeBanner from '@/components/NoticeBanner.vue'
 import GuideBanners from '@/components/GuideBanners.vue'
+import FrequentlyAskedQuestions from '@/components/FrequentlyAskedQuestions.vue'
 
 export default {
   name: 'Manual',
@@ -61,7 +71,8 @@ export default {
     ManualContent,
     SearchBar,
     NoticeBanner,
-    GuideBanners
+    GuideBanners,
+    FrequentlyAskedQuestions
   },
   data() {
     return {
@@ -73,6 +84,9 @@ export default {
     isDarkMode() {
       return this.isDark
     }
+  },
+  mounted() {
+    this.setupScrollAnimations()
   },
   methods: {
     handleSectionChange(section) {
@@ -89,6 +103,26 @@ export default {
     },
     goToMainPage() {
       this.showMainPage = true
+    },
+    setupScrollAnimations() {
+      const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+      }
+
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible')
+          }
+        })
+      }, observerOptions)
+
+      // Observe scroll-reveal elements
+      this.$nextTick(() => {
+        const scrollElements = document.querySelectorAll('.scroll-reveal')
+        scrollElements.forEach(el => observer.observe(el))
+      })
     }
   }
 }
@@ -125,7 +159,7 @@ export default {
 .hero-content {
   max-width: 800px;
   margin: 0 auto;
-  padding: 0 20px;
+  padding: 0 20px 10px;
 }
 
 .hero-header {
@@ -196,6 +230,80 @@ export default {
   background: #495057;
   border-color: #6c757d;
   color: #fff;
+}
+
+/* Animation Classes */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInFromLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInFromRight {
+  from {
+    opacity: 0;
+    transform: translateX(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 1s ease-out;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.8s ease-out;
+}
+
+.animate-slide-up.delay-1 {
+  animation-delay: 0.2s;
+  animation-fill-mode: both;
+  opacity: 0;
+}
+
+.animate-slide-up.delay-2 {
+  animation-delay: 0.4s;
+  animation-fill-mode: both;
+  opacity: 0;
+}
+
+.scroll-reveal {
+  opacity: 0;
+  transform: translateY(50px);
+  transition: all 0.8s cubic-bezier(0.17, 0.67, 0.5, 1.03);
+}
+
+.scroll-reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 @media (max-width: 768px) {
