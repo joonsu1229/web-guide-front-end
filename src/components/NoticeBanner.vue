@@ -1,5 +1,5 @@
 <template>
-  <div class="notice-banner" v-if="!isDismissed">
+  <div class="notice-banner" v-if="!isDismissed" :class="{ 'dark-mode': isDark }">
     <div class="notice-content">
       <div class="notice-icon">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
@@ -37,6 +37,12 @@
 <script>
 export default {
   name: 'NoticeBanner',
+  props: {
+    isDark: {
+      type: Boolean,
+      default: false
+    }
+  },
   data() {
     return {
       isDismissed: false
@@ -68,6 +74,12 @@ export default {
   margin-bottom: 24px;
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  transition: all 0.3s ease;
+}
+
+.notice-banner.dark-mode {
+  background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
+  box-shadow: 0 4px 12px rgba(74, 85, 104, 0.4);
 }
 
 .notice-content {

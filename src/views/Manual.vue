@@ -1,24 +1,27 @@
 <template>
-  <div class="manual-container">
+  <div class="manual-container" :class="{ 'dark-mode': isDarkMode }">
     <div v-if="showMainPage" class="main-page">
       <div class="hero-section">
         <div class="hero-content">
-          <h1 class="hero-title">워크쓰루 가이드</h1>
+          <div class="hero-header">
+            <h1 class="hero-title">워크쓰루 가이드</h1>
+          </div>
           <p class="hero-subtitle">효율적인 업무 관리를 위한 통합 가이드</p>
-          <SearchBar @search="handleSearch" />
+          <SearchBar @search="handleSearch" :isDark="isDarkMode" />
         </div>
       </div>
 
-      <NoticeBanner />
-      <GuideBanners @banner-select="handleBannerSelect" />
+      <NoticeBanner :isDark="isDarkMode" />
+      <GuideBanners @banner-select="handleBannerSelect" :isDark="isDarkMode" />
     </div>
 
     <div v-else class="guide-content">
       <ManualSidebar
         :activeSection="activeSection"
         @section-change="handleSectionChange"
+        :isDark="isDarkMode"
       />
-      <ManualContent :activeSection="activeSection" />
+      <ManualContent :activeSection="activeSection" :isDark="isDarkMode" />
     </div>
 
     <div class="back-to-main" v-if="!showMainPage">
@@ -47,6 +50,12 @@ import GuideBanners from '@/components/GuideBanners.vue'
 
 export default {
   name: 'Manual',
+  props: {
+    isDark: {
+      type: Boolean,
+      default: false
+    }
+  },
   components: {
     ManualSidebar,
     ManualContent,
@@ -58,6 +67,11 @@ export default {
     return {
       activeSection: 'overview',
       showMainPage: true
+    }
+  },
+  computed: {
+    isDarkMode() {
+      return this.isDark
     }
   },
   methods: {
@@ -84,6 +98,12 @@ export default {
 .manual-container {
   min-height: 100vh;
   background-color: #f8f9fa;
+  transition: all 0.3s ease;
+}
+
+.manual-container.dark-mode {
+  background-color: #1a1d21;
+  color: #e9ecef;
 }
 
 .main-page {
@@ -95,6 +115,11 @@ export default {
   color: white;
   padding: 80px 0 60px;
   text-align: center;
+  transition: all 0.3s ease;
+}
+
+.manual-container.dark-mode .hero-section {
+  background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
 }
 
 .hero-content {
@@ -103,10 +128,17 @@ export default {
   padding: 0 20px;
 }
 
+.hero-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
 .hero-title {
   font-size: 48px;
   font-weight: 700;
-  margin: 0 0 16px 0;
+  margin: 0;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
@@ -121,6 +153,7 @@ export default {
   display: flex;
   min-height: 100vh;
 }
+
 
 .back-to-main {
   position: fixed;
@@ -153,6 +186,18 @@ export default {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
+.manual-container.dark-mode .back-button {
+  background: #343a40;
+  border-color: #495057;
+  color: #e9ecef;
+}
+
+.manual-container.dark-mode .back-button:hover {
+  background: #495057;
+  border-color: #6c757d;
+  color: #fff;
+}
+
 @media (max-width: 768px) {
   .guide-content {
     flex-direction: column;
@@ -160,6 +205,11 @@ export default {
 
   .hero-section {
     padding: 60px 0 40px;
+  }
+
+  .hero-header {
+    flex-direction: column;
+    gap: 12px;
   }
 
   .hero-title {

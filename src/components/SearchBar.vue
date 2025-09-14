@@ -69,6 +69,12 @@
 <script>
 export default {
   name: 'SearchBar',
+  props: {
+    isDark: {
+      type: Boolean,
+      default: false
+    }
+  },
   emits: ['search'],
   data() {
     return {
@@ -130,8 +136,8 @@ export default {
   position: relative;
   display: flex;
   align-items: center;
-  background: #fff;
-  border: 2px solid #e9ecef;
+  background: var(--card-bg);
+  border: 2px solid var(--border-color);
   border-radius: 50px;
   padding: 0 20px;
   transition: all 0.2s ease;
@@ -156,7 +162,7 @@ export default {
   outline: none;
   padding: 16px 0;
   font-size: 16px;
-  color: #495057;
+  color: var(--text-color);
   background: transparent;
 }
 
@@ -188,8 +194,8 @@ export default {
   top: 100%;
   left: 0;
   right: 0;
-  background: #fff;
-  border: 1px solid #e9ecef;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
   border-radius: 12px;
   margin-top: 8px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
@@ -212,7 +218,7 @@ export default {
 }
 
 .suggestion-item:hover {
-  background-color: #f8f9fa;
+  background-color: var(--hover-bg);
 }
 
 .suggestion-icon {
@@ -223,7 +229,7 @@ export default {
 }
 
 .suggestion-text {
-  color: #495057;
+  color: var(--text-color);
   font-size: 14px;
 }
 

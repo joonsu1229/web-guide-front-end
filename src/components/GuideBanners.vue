@@ -1,5 +1,5 @@
 <template>
-  <div class="guide-banners">
+  <div class="guide-banners" :class="{ 'dark-mode': isDark }">
     <div class="banner-container">
       <h2 class="banners-title">웹 가이드를 시작하셨나요?</h2>
       <p class="banners-subtitle">단계별 가이드로 쉽게 시작해보세요</p>
@@ -119,6 +119,12 @@ const AnalyticsIcon = {
 
 export default {
   name: 'GuideBanners',
+  props: {
+    isDark: {
+      type: Boolean,
+      default: false
+    }
+  },
   components: {
     RocketIcon,
     DocumentIcon,
@@ -190,9 +196,10 @@ export default {
 .banners-title {
   font-size: 32px;
   font-weight: 700;
-  color: #202936;
+  color: var(--text-color);
   text-align: center;
   margin: 0 0 8px 0;
+  transition: color 0.3s ease;
 }
 
 .banners-subtitle {
@@ -200,6 +207,11 @@ export default {
   color: #6c757d;
   text-align: center;
   margin: 0 0 40px 0;
+  transition: color 0.3s ease;
+}
+
+.guide-banners.dark-mode .banners-subtitle {
+  color: #9ca3af;
 }
 
 .banners-grid {
@@ -209,7 +221,7 @@ export default {
 }
 
 .banner-card {
-  background: #fff;
+  background: var(--card-bg);
   border-radius: 16px;
   padding: 24px;
   display: flex;
@@ -275,7 +287,7 @@ export default {
 .banner-title {
   font-size: 20px;
   font-weight: 600;
-  color: #202936;
+  color: var(--text-color);
   margin: 0 0 8px 0;
 }
 
@@ -284,6 +296,11 @@ export default {
   color: #6c757d;
   line-height: 1.5;
   margin: 0 0 12px 0;
+  transition: color 0.3s ease;
+}
+
+.guide-banners.dark-mode .banner-description {
+  color: #9ca3af;
 }
 
 .banner-tags {
@@ -293,8 +310,8 @@ export default {
 }
 
 .banner-tag {
-  background: #f8f9fa;
-  color: #495057;
+  background: var(--hover-bg);
+  color: var(--text-color);
   padding: 4px 8px;
   border-radius: 12px;
   font-size: 12px;
