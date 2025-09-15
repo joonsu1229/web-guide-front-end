@@ -4,7 +4,15 @@
       <h2 class="banners-title">워크쓰루를 시작하셨나요?</h2>
       <p class="banners-subtitle">단계별 가이드로 쉽게 시작해보세요</p>
 
-      <div class="banners-grid">
+      <div v-if="isLoading" class="status-message">
+        <p>가이드를 불러오는 중입니다...</p>
+      </div>
+
+      <div v-else-if="hasError" class="status-message error">
+        <p>정보를 불러오지 못했습니다: {{ error }}</p>
+      </div>
+
+      <div v-else-if="banners && banners.length > 0" class="banners-grid">
         <div
           v-for="banner in banners"
           :key="banner.id"
@@ -19,11 +27,7 @@
             <h3 class="banner-title">{{ banner.title }}</h3>
             <p class="banner-description">{{ banner.description }}</p>
             <div class="banner-tags">
-              <span
-                v-for="tag in banner.tags"
-                :key="tag"
-                class="banner-tag"
-              >
+              <span v-for="tag in banner.tags" :key="tag" class="banner-tag">
                 {{ tag }}
               </span>
             </div>
@@ -41,11 +45,18 @@
           </div>
         </div>
       </div>
+
+      <div v-else class="status-message">
+        <p>표시할 가이드가 없습니다.</p>
+      </div>
     </div>
   </div>
 </template>
 
 <script>
+import { mapState, mapActions } from 'pinia'
+import { usePortalMenuStore } from '@/stores/usePortalMenuStore'
+
 const RocketIcon = {
   template: `
     <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
@@ -132,52 +143,26 @@ export default {
     AnalyticsIcon
   },
   emits: ['banner-select'],
-  data() {
-    return {
-      banners: [
-        {
-          id: 1,
-          title: '시작하기',
-          description: '웹 가이드 시스템을 처음 사용하시나요? 기본 기능부터 차근차근 알아보세요.',
-          icon: 'RocketIcon',
-          className: 'banner-primary',
-          tags: ['기초', '튜토리얼'],
-          section: 'getting-started'
-        },
-        {
-          id: 2,
-          title: '포탈(Portal)',
-          description: '게시판, 업무지원 등 포틀릿으로 개인화된 대시보드 홈화면으로 배치해보세요.',
-          icon: 'DocumentIcon',
-          className: 'banner-success',
-          tags: ['포틀릿', '조직도'],
-          section: 'job-management'
-        },
-        {
-          id: 3,
-          title: '전자결재',
-          description: '양식 생성기를 통해 손쉽게 양식을 만들 수 있고, 검색 및 관리 기능도 함께 제공합니다.',
-          icon: 'SearchIcon',
-          className: 'banner-info',
-          tags: ['문서함 분류', '결재 알림'],
-          section: 'search'
-        },
-        {
-          id: 4,
-          title: 'e-HR',
-          description: '52시간 근퇴 관리 기능으로 구성원의 연차를 관리해보세요.',
-          icon: 'AnalyticsIcon',
-          className: 'banner-warning',
-          tags: ['출퇴근', '연차 관리'],
-          section: 'analytics'
-        }
-      ]
-    }
+  
+  computed: {
+    ...mapState(usePortalMenuStore, [
+      'banners',
+      'isLoading',
+      'hasError',
+      'error'
+    ])
   },
+  
   methods: {
+    ...mapActions(usePortalMenuStore, ['fetchPortalMenus']),
+
     selectBanner(banner) {
       this.$emit('banner-select', banner.section)
     }
+  },
+
+  created() {
+    this.fetchPortalMenus('P1');
   }
 }
 </script>
@@ -361,6 +346,22 @@ export default {
 .banner-card:hover .banner-arrow {
   color: currentColor;
   transform: translateX(4px);
+}
+
+.status-message {
+  text-align: center;
+  padding: 40px 0;
+  font-size: 18px;
+  color: #6c757d;
+}
+.status-message.error {
+  color: #dc3545;
+}
+.guide-banners.dark-mode .status-message {
+  color: #9ca3af;
+}
+.guide-banners.dark-mode .status-message.error {
+  color: #f87171;
 }
 
 @media (max-width: 768px) {
