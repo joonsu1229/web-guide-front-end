@@ -1,54 +1,41 @@
+// src/components/ManualSidebar.vue
+
 <template>
   <div class="sidebar" :class="{ 'dark-mode': isDark }">
     <nav class="sidebar-nav">
-      <div class="nav-section">
-        <h3 class="nav-section-title collapsible" @click="toggleSection('getting-started')">
-          <span class="toggle-icon" :class="{ expanded: !collapsedSections['getting-started'] }">></span>
-          시작하기
-        </h3>
-        <ul class="nav-list" v-show="!collapsedSections['getting-started']">
-          <li class="nav-item" :class="{ active: activeSection === 'overview' }" @click="selectSection('overview')">
-            <span>개요</span>
-          </li>
-          <li class="nav-item" :class="{ active: activeSection === 'getting-started' }" @click="selectSection('getting-started')">
-            <span>시작 가이드</span>
-          </li>
-        </ul>
+      <div v-if="portalMenuStore.isLoading" class="nav-section-title">
+        메뉴 로딩 중...
+      </div>
+      <div v-else-if="portalMenuStore.hasError" class="nav-section-title">
+        오류: {{ portalMenuStore.error }}
       </div>
 
-      <div class="nav-section">
-        <h3 class="nav-section-title collapsible" @click="toggleSection('main-features')">
-          <span class="toggle-icon" :class="{ expanded: !collapsedSections['main-features'] }">></span>
-          주요 기능
+      <div v-for="menu in portalMenus" :key="menu.section" class="nav-section">
+        <h3
+          class="nav-section-title collapsible"
+          @click="toggleSection(menu.section)"
+        >
+          <span
+            class="toggle-icon"
+            :class="{ expanded: !collapsedSections[menu.section] }"
+            >&gt;</span
+          >
+          {{ menu.title }}
         </h3>
-        <ul class="nav-list" v-show="!collapsedSections['main-features']">
-          <li class="nav-item" :class="{ active: activeSection === 'job-management' }" @click="selectSection('job-management')">
-            <span>채용정보 관리</span>
+        <ul class="nav-list" v-show="!collapsedSections[menu.section]">
+          <li v-if="loading && lastToggledSection === menu.section" class="nav-item status">
+            - 로딩 중...
           </li>
-          <li class="nav-item" :class="{ active: activeSection === 'document-management' }" @click="selectSection('document-management')">
-            <span>문서 관리</span>
+          <li v-else-if="hasError && lastToggledSection === menu.section" class="nav-item status">
+            - 오류 발생
           </li>
-          <li class="nav-item" :class="{ active: activeSection === 'search' }" @click="selectSection('search')">
-            <span>검색 기능</span>
-          </li>
-          <li class="nav-item" :class="{ active: activeSection === 'analytics' }" @click="selectSection('analytics')">
-            <span>분석 및 통계</span>
-          </li>
-        </ul>
-      </div>
-
-      <div class="nav-section">
-        <h3 class="nav-section-title collapsible" @click="toggleSection('advanced-features')">
-          <span class="toggle-icon" :class="{ expanded: !collapsedSections['advanced-features'] }">></span>
-          고급 기능
-        </h3>
-        <ul class="nav-list" v-show="!collapsedSections['advanced-features']">
-          <li class="nav-item" :class="{ active: activeSection === 'api' }" @click="selectSection('api')">
-            <span>API 연동</span>
-          </li>
-          <li class="nav-item" :class="{ active: activeSection === 'settings' }" @click="selectSection('settings')">
-            <span>설정 관리</span>
-          </li>
+          <CategoryItem
+            v-for="category in categoryTrees[menu.section]"
+            :key="category.id"
+            :category="category"
+            :active-section="activeSection"
+            @section-change="selectSection"
+          />
         </ul>
       </div>
     </nav>
@@ -56,12 +43,20 @@
 </template>
 
 <script>
+import { mapState, mapActions } from 'pinia';
+import { usePortalMenuStore } from '@/stores/usePortalMenuStore';
+import { useCategoryStore } from '@/stores/useCategoryStore';
+import CategoryItem from './CategoryItem.vue';
+
 export default {
   name: 'ManualSidebar',
+  components: {
+    CategoryItem
+  },
   props: {
     activeSection: {
       type: String,
-      default: 'overview'
+      default: null
     },
     isDark: {
       type: Boolean,
@@ -71,25 +66,56 @@ export default {
   emits: ['section-change'],
   data() {
     return {
-      collapsedSections: {
-        'getting-started': false,
-        'main-features': false,
-        'advanced-features': false
-      }
+      collapsedSections: {},
+      portalMenuStore: usePortalMenuStore(), // portalMenuStore의 isLoading을 직접 사용하기 위해 data에 선언
+      lastToggledSection: null
     }
   },
+  computed: {
+    ...mapState(usePortalMenuStore, {
+      portalMenus: 'banners' 
+    }),
+    // ✅ useCategoryStore의 state들을 컴포넌트의 computed 속성으로 연결
+    ...mapState(useCategoryStore, [
+      'categoryTrees', 
+      'loading', // 'this.loading'으로 접근 가능
+      'hasError'
+    ])
+  },
   methods: {
-    selectSection(section) {
-      this.$emit('section-change', section)
+    ...mapActions(useCategoryStore, ['fetchCategoryTree']),
+
+    selectSection(sectionId) {
+      this.$emit('section-change', sectionId);
     },
-    toggleSection(section) {
-      this.collapsedSections[section] = !this.collapsedSections[section]
+    
+    toggleSection(sectionKey) {
+      this.collapsedSections[sectionKey] = !this.collapsedSections[sectionKey];
+      this.lastToggledSection = sectionKey;
+
+      if (!this.collapsedSections[sectionKey]) {
+        this.fetchCategoryTree('P1', sectionKey);
+      }
+    },
+    
+    initializeCollapsedState() {
+      const state = {};
+      const menus = [...this.portalMenus].sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
+      for (const menu of menus) {
+        state[menu.section] = true;
+      }
+      this.collapsedSections = state;
     }
+  },
+  async created() {
+    await this.portalMenuStore.fetchPortalMenus('P1');
+    this.initializeCollapsedState();
   }
 }
 </script>
 
 <style scoped>
+/* 스타일은 이전과 동일 */
 .sidebar {
   width: 280px;
   background: var(--card-bg);
@@ -105,22 +131,21 @@ export default {
 }
 
 .nav-section {
-  margin-bottom: 32px;
+  margin-bottom: 4px;
 }
 
 .nav-section-title {
   font-size: 14px;
   font-weight: 600;
   color: #495057;
-  margin: 0 0 12px 24px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .nav-section-title.collapsible {
   cursor: pointer;
-  padding: 8px 24px;
-  margin: 0 0 4px 0;
+  padding: 10px 24px;
+  margin: 0;
   display: flex;
   align-items: center;
   transition: all 0.2s ease;
@@ -156,6 +181,14 @@ export default {
   color: #6c757d;
   font-size: 14px;
   transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+}
+
+.nav-item.status {
+  color: #adb5bd;
+  font-style: italic;
+  cursor: default;
 }
 
 .nav-item:hover {
