@@ -47,12 +47,17 @@ export default {
     ...mapState(useCategoryStore, ['categoryTrees']),
     activeItem() {
       if (!this.activeItemId || !this.categoryTrees) return null;
-      for (const parent of this.categoryTrees.portal) {
+
+      // 1. Object.values()로 객체 안의 배열들을 추출하고, .flat()으로 하나의 배열 만듦
+      const allParents = Object.values(this.categoryTrees).flat();
+      
+      for (const parent of allParents) {
         const foundChild = parent.children?.find(child => child.id == this.activeItemId);
         if (foundChild) {
           return { ...foundChild, parentName: parent.name };
         }
       }
+
       return null;
     }
   },
@@ -86,6 +91,42 @@ export default {
 </script>
 
 <style scoped>
-.guide-layout { display: flex; }
-.main-content { flex-grow: 1; padding: 0; }
+.guide-layout {
+  display: flex;
+  height: calc(100vh - 60px); /* 예시: 전체 화면 높이에서 헤더 높이(60px)를 뺀 값 */
+}
+
+/* ManualSidebar 컴포넌트에 직접 적용될 스타일 */
+.guide-layout :deep(.manual-sidebar-component) { /* 사이드바 컴포넌트의 최상위 클래스명으로 가정 */
+  width: 280px; /* 사이드바 너비 고정 */
+  flex-shrink: 0; /* 사이드바가 찌그러지지 않도록 방지 */
+  overflow-y: auto; /* 사이드바 내용이 길 경우 자체 스크롤 */
+  height: 100%;
+}
+
+.main-content {
+  flex: 1; /* ✨ 1. 남은 공간을 모두 차지하도록 설정 */
+  min-width: 0; /* ✨ 2. 콘텐츠가 커져도 사이드바를 밀어내지 않도록 설정 (가장 중요!) */
+  overflow-y: auto; /* ✨ 3. 이 영역이 스크롤되도록 하여 내부 sticky가 동작하게 함 (가장 중요!) */
+  height: 100%;
+}
+
+.back-to-main {
+  padding: 16px 32px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.back-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #6c757d;
+  font-size: 14px;
+}
+.back-button:hover {
+  color: var(--text-color);
+}
 </style>
