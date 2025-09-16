@@ -44,11 +44,11 @@ export default {
     }
   },
   computed: {
-    ...mapState(useCategoryStore, ['categoryTree']),
+    ...mapState(useCategoryStore, ['categoryTrees']),
     activeItem() {
-      if (!this.activeItemId || !this.categoryTree) return null;
-      for (const parent of this.categoryTree) {
-        const foundChild = parent.children?.find(child => child.id === this.activeItemId);
+      if (!this.activeItemId || !this.categoryTrees) return null;
+      for (const parent of this.categoryTrees.portal) {
+        const foundChild = parent.children?.find(child => child.id == this.activeItemId);
         if (foundChild) {
           return { ...foundChild, parentName: parent.name };
         }
