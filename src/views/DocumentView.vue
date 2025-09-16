@@ -162,13 +162,10 @@
           </n-form-item>
 
           <n-form-item label="내용" path="content">
-            <n-input
-              v-model:value="formData.content"
-              type="textarea"
-              placeholder="문서 내용을 입력하세요"
-              :rows="10"
-              :maxlength="10000"
-              show-count
+            <MarkdownEditor
+              v-model="formData.content"
+              placeholder="마크다운으로 문서 내용을 입력하세요"
+              height="400px"
             />
           </n-form-item>
         </n-form>
@@ -256,8 +253,13 @@
           <n-divider />
 
           <div class="prose max-w-none">
-            <div class="whitespace-pre-wrap text-gray-700 leading-relaxed">
-              {{ previewDocument.content }}
+            <div
+              v-if="previewDocument.content"
+              class="markdown-preview text-gray-700 leading-relaxed"
+              v-html="md.render(previewDocument.content)"
+            />
+            <div v-else class="text-gray-500 italic">
+              내용이 없습니다.
             </div>
           </div>
         </div>
@@ -287,6 +289,9 @@
 import { ref, computed, onMounted, h } from 'vue'
 import { useMessage, NButton, NIcon, NTag, NText, NEllipsis } from 'naive-ui'
 import { useDocumentStore } from '@/stores/documentStore'
+import MarkdownEditor from '@/components/MarkdownEditor.vue'
+import MarkdownIt from 'markdown-it'
+import hljs from 'highlight.js'
 import {
   AddOutline,
   SearchOutline,
@@ -303,6 +308,21 @@ import {
 
 const message = useMessage()
 const documentStore = useDocumentStore()
+
+// Markdown-it 설정
+const md = new MarkdownIt({
+  html: true,
+  linkify: true,
+  typographer: true,
+  highlight: function (str, lang) {
+    if (lang && hljs.getLanguage(lang)) {
+      try {
+        return hljs.highlight(str, { language: lang }).value
+      } catch (__) {}
+    }
+    return ''
+  }
+})
 
 // Reactive data
 const searchQuery = ref('')
@@ -569,5 +589,107 @@ onMounted(async () => {
 
 .prose p {
   margin-bottom: 1rem;
+}
+
+.markdown-preview :deep(h1),
+.markdown-preview :deep(h2),
+.markdown-preview :deep(h3),
+.markdown-preview :deep(h4),
+.markdown-preview :deep(h5),
+.markdown-preview :deep(h6) {
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+  font-weight: 600;
+  color: #111827;
+}
+
+.markdown-preview :deep(h1) {
+  font-size: 2em;
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 0.3em;
+}
+
+.markdown-preview :deep(h2) {
+  font-size: 1.5em;
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 0.3em;
+}
+
+.markdown-preview :deep(p) {
+  margin-bottom: 1em;
+}
+
+.markdown-preview :deep(ul),
+.markdown-preview :deep(ol) {
+  margin-bottom: 1em;
+  padding-left: 2em;
+}
+
+.markdown-preview :deep(li) {
+  margin-bottom: 0.25em;
+}
+
+.markdown-preview :deep(blockquote) {
+  border-left: 4px solid #d1d5db;
+  margin: 1em 0;
+  padding-left: 1em;
+  color: #6b7280;
+  font-style: italic;
+}
+
+.markdown-preview :deep(pre) {
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 1em;
+  overflow-x: auto;
+  margin-bottom: 1em;
+}
+
+.markdown-preview :deep(code) {
+  background: #f3f4f6;
+  padding: 0.2em 0.4em;
+  border-radius: 3px;
+  font-size: 0.9em;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+}
+
+.markdown-preview :deep(pre code) {
+  background: transparent;
+  padding: 0;
+}
+
+.markdown-preview :deep(table) {
+  border-collapse: collapse;
+  margin-bottom: 1em;
+  width: 100%;
+}
+
+.markdown-preview :deep(th),
+.markdown-preview :deep(td) {
+  border: 1px solid #e5e7eb;
+  padding: 8px 12px;
+  text-align: left;
+}
+
+.markdown-preview :deep(th) {
+  background: #f9fafb;
+  font-weight: 600;
+}
+
+.markdown-preview :deep(img) {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+  margin: 1em 0;
+}
+
+.markdown-preview :deep(a) {
+  color: #3b82f6;
+  text-decoration: none;
+}
+
+.markdown-preview :deep(a:hover) {
+  text-decoration: underline;
 }
 </style>
