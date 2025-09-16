@@ -3,8 +3,8 @@
     <!-- Page Header -->
     <div class="flex justify-between items-center">
       <div>
-        <h1 class="text-3xl font-bold text-gray-900">문서 관리</h1>
-        <p class="text-gray-600 mt-1">사용자 매뉴얼의 문서를 관리합니다</p>
+        <h1 class="text-3xl font-bold text-gray-900">매뉴얼 관리</h1>
+        <p class="text-gray-600 mt-1">사용자 매뉴얼을 관리합니다</p>
       </div>
       <n-button type="primary" @click="openCreateModal">
         <template #icon>
@@ -12,7 +12,7 @@
             <AddOutline />
           </n-icon>
         </template>
-        새 문서 추가
+        새 매뉴얼 추가
       </n-button>
     </div>
 
@@ -22,7 +22,7 @@
         <div class="flex-1">
           <n-input
             v-model:value="searchQuery"
-            placeholder="문서 제목이나 내용으로 검색..."
+            placeholder="카테고리 이름으로 검색..."
             clearable
             @input="handleSearch"
           >
@@ -58,8 +58,8 @@
       <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
         <div class="flex items-center">
           <div class="flex-1">
-            <p class="text-sm font-medium text-gray-600">총 문서 수</p>
-            <p class="text-2xl font-bold text-gray-900">{{ documentStore.documents.length }}</p>
+            <p class="text-sm font-medium text-gray-600">총 매뉴얼 수</p>
+            <p class="text-2xl font-bold text-gray-900">{{ categories.length }}</p>
           </div>
           <n-icon size="24" color="#6366f1">
             <DocumentTextOutline />
@@ -109,8 +109,8 @@
       <div class="px-4 py-5 sm:p-6">
         <n-data-table
           :columns="columns"
-          :data="filteredDocuments"
-          :loading="documentStore.isLoading"
+          :data="categories"
+          :loading="isLoadingCategories"
           :pagination="paginationConfig"
           :row-key="(row) => row.id"
           size="medium"
@@ -123,7 +123,7 @@
     <n-modal v-model:show="showCreateModal" :mask-closable="false">
       <n-card
         style="width: 80vw; max-width: 800px"
-        :title="editingDocument ? '문서 수정' : '새 문서 추가'"
+        :title="editingDocument ? '매뉴얼 수정' : '새 매뉴얼 추가'"
         :bordered="false"
         size="huge"
         role="dialog"
@@ -147,7 +147,7 @@
           <n-form-item label="제목" path="title">
             <n-input
               v-model:value="formData.title"
-              placeholder="문서 제목을 입력하세요"
+              placeholder="매뉴얼 제목을 입력하세요"
               :maxlength="500"
               show-count
             />
@@ -164,7 +164,7 @@
           <n-form-item label="내용" path="content">
             <MarkdownEditor
               v-model="formData.content"
-              placeholder="마크다운으로 문서 내용을 입력하세요"
+              placeholder="마크다운으로 매뉴얼 내용을 입력하세요"
               height="400px"
             />
           </n-form-item>
@@ -189,14 +189,14 @@
     <n-modal v-model:show="showDeleteModal">
       <n-card
         style="width: 400px"
-        title="문서 삭제 확인"
+        title="매뉴얼 삭제 확인"
         :bordered="false"
         size="huge"
         role="dialog"
         aria-modal="true"
       >
         <n-space vertical>
-          <n-text>정말로 이 문서를 삭제하시겠습니까?</n-text>
+          <n-text>정말로 이 매뉴얼을 삭제하시겠습니까?</n-text>
           <n-text strong>{{ deletingDocument?.title }}</n-text>
           <n-text depth="3" size="small">
             이 작업은 되돌릴 수 없습니다.
@@ -222,7 +222,7 @@
     <n-modal v-model:show="showPreviewModal" :mask-closable="false">
       <n-card
         style="width: 80vw; max-width: 900px"
-        title="문서 미리보기"
+        title="매뉴얼 미리보기"
         :bordered="false"
         size="huge"
         role="dialog"
@@ -290,6 +290,7 @@ import { ref, computed, onMounted, h } from 'vue'
 import { useMessage, NButton, NIcon, NTag, NText, NEllipsis } from 'naive-ui'
 import { useDocumentStore } from '@/stores/documentStore'
 import { usePortalMenuStore } from '@/stores/usePortalMenuStore'
+import { categoryAPI } from '@/api/categoryAPI'
 import MarkdownEditor from '@/components/MarkdownEditor.vue'
 import MarkdownIt from 'markdown-it'
 import hljs from 'highlight.js'
@@ -310,6 +311,10 @@ import {
 const message = useMessage()
 const documentStore = useDocumentStore()
 const portalMenuStore = usePortalMenuStore()
+
+// 카테고리 데이터 상태
+const categories = ref([])
+const isLoadingCategories = ref(false)
 
 // Markdown-it 설정
 const md = new MarkdownIt({
@@ -386,44 +391,54 @@ const categorySelectOptions = computed(() => {
   return options
 })
 
-// Table configuration
+// Table configuration - 카테고리 데이터용
 const columns = [
   {
     title: 'ID',
     key: 'id',
-    width: 60,
+    width: 80,
     align: 'center'
   },
   {
-    title: '제목',
-    key: 'title',
+    title: '카테고리 이름',
+    key: 'name',
     minWidth: 200,
     render: (row) => h(NEllipsis, { style: { maxWidth: '300px' } }, {
-      default: () => row.title
+      default: () => row.name || row.title
     })
   },
   {
-    title: '카테고리',
-    key: 'category',
-    width: 120,
+    title: '설명',
+    key: 'description',
+    minWidth: 250,
+    render: (row) => h(NEllipsis, { style: { maxWidth: '350px' } }, {
+      default: () => row.description || '-'
+    })
+  },
+  {
+    title: '상태',
+    key: 'status',
+    width: 100,
+    align: 'center',
     render: (row) => h(NTag, {
       size: 'small',
-      type: getCategoryColor(row.category)
+      type: row.status === 'ACTIVE' ? 'success' : 'default'
     }, {
-      default: () => documentStore.getCategoryLabel(row.category)
+      default: () => row.status || 'ACTIVE'
     })
   },
   {
-    title: '생성일',
-    key: 'createdAt',
-    width: 150,
-    render: (row) => documentStore.formatDate(row.createdAt)
-  },
-  {
-    title: '수정일',
-    key: 'updatedAt',
-    width: 150,
-    render: (row) => documentStore.formatDate(row.updatedAt)
+    title: '날짜',
+    key: 'date',
+    width: 180,
+    render: (row) => {
+      const created = row.createdAt ? new Date(row.createdAt).toLocaleDateString() : '-'
+      const updated = row.updatedAt ? new Date(row.updatedAt).toLocaleDateString() : '-'
+      return h('div', { class: 'text-xs' }, [
+        h('div', `생성: ${created}`),
+        h('div', { class: 'text-gray-500' }, `수정: ${updated}`)
+      ])
+    }
   },
   {
     title: '작업',
@@ -501,7 +516,7 @@ const handleFilter = () => {
 const handleRefresh = async () => {
   try {
     await documentStore.fetchDocuments()
-    message.success('문서 목록이 새로고침되었습니다')
+    message.success('매뉴얼 목록이 새로고침되었습니다')
   } catch (error) {
     message.error('새로고침 중 오류가 발생했습니다')
   }
@@ -532,11 +547,11 @@ const deleteDocument = (document) => {
 const confirmDelete = async () => {
   try {
     await documentStore.deleteDocument(deletingDocument.value.id)
-    message.success('문서가 삭제되었습니다')
+    message.success('매뉴얼이 삭제되었습니다')
     showDeleteModal.value = false
     deletingDocument.value = null
   } catch (error) {
-    message.error('문서 삭제 중 오류가 발생했습니다')
+    message.error('매뉴얼 삭제 중 오류가 발생했습니다')
   }
 }
 
@@ -546,10 +561,10 @@ const handleSubmit = async () => {
 
     if (editingDocument.value) {
       await documentStore.updateDocument(editingDocument.value.id, formData.value)
-      message.success('문서가 수정되었습니다')
+      message.success('매뉴얼이 수정되었습니다')
     } else {
       await documentStore.createDocument(formData.value)
-      message.success('문서가 생성되었습니다')
+      message.success('매뉴얼이 생성되었습니다')
     }
 
     closeModal()
@@ -604,12 +619,25 @@ const getCategoryColor = (category) => {
   return colors[category] || 'default'
 }
 
+// 카테고리 데이터 로드 함수
+const fetchCategories = async () => {
+  try {
+    isLoadingCategories.value = true
+    categories.value = await categoryAPI.getCategories('P1')
+  } catch (error) {
+    message.error('카테고리 데이터를 불러오는 중 오류가 발생했습니다')
+    console.error(error)
+  } finally {
+    isLoadingCategories.value = false
+  }
+}
+
 // Lifecycle
 onMounted(async () => {
   try {
-    // 문서와 포탈 메뉴 데이터를 병렬로 로드
+    // 카테고리와 포탈 메뉴 데이터를 병렬로 로드
     await Promise.all([
-      documentStore.fetchDocuments(),
+      fetchCategories(),
       portalMenuStore.fetchPortalMenus('P1') // 기본 포탈 ID를 P1로 가정
     ])
   } catch (error) {

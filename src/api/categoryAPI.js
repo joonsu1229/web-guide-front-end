@@ -15,5 +15,21 @@ export const categoryAPI = {
       params: { portalId, section }
     })
     return response.data
+  },
+
+  /**
+   * 카테고리 목록을 조회한다 (section 파라미터 있으면 섹션별 / 없으면 전체 카테고리 반환)
+   * @param {string} portalId - 조회할 포탈의 ID
+   * @param {string} [section] - 조회할 섹션 (선택사항)
+   * @returns {Promise<Array>} Category DTO 배열
+   */
+  async getCategories(portalId, section = null) {
+    const params = { portalId }
+    if (section) {
+      params.section = section
+    }
+
+    const response = await apiClient.get('/categories', { params })
+    return response.data
   }
 }

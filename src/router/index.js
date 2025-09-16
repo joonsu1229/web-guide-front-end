@@ -45,7 +45,7 @@ const routes = [
     name: 'Documents',
     component: DocumentView,
     meta: {
-      title: '문서 관리',
+      title: '매뉴얼 관리',
       icon: 'document'
     }
   },
