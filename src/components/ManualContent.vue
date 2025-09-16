@@ -1,7 +1,7 @@
 <template>
   <div class="manual-content-component">
     <div v-if="activeItem" class="content-wrapper">
-      <div class="breadcrumb">
+      <div class="breadcrumb ml-10">
         <span>가이드</span>
         <span class="separator">></span>
         <span>{{ activeItem.parentName }}</span>
@@ -14,8 +14,7 @@
           <div v-else-if="error" class="status-message error">{{ error }}</div>
           <section v-else-if="currentContent" class="content-section">
             <h1>{{ activeItem.name }}</h1>
-            <p v-if="activeItem.description" class="content-section-description">{{ activeItem.description }}</p>
-            <div class="content-body" v-html="currentContent.contentBody"></div>
+            <div class="content-body" v-html="renderedContentBody"></div>
           </section>
           <div v-else class="status-message">
             선택된 항목에 대한 콘텐츠가 없습니다.
@@ -52,6 +51,7 @@
 <script>
 import { mapState } from 'pinia'
 import { useManualContentStore } from '@/stores/useManualContentStore'
+import { marked } from 'marked'; // marked 라이브러리 import 예시
 
 export default {
   name: 'ManualContent',
@@ -65,8 +65,23 @@ export default {
     }
   },
   computed: {
-    ...mapState(useManualContentStore, ['currentContent', 'loading', 'error'])
+    ...mapState(useManualContentStore, ['currentContent', 'loading', 'error']),
+
+    renderedContentBody() {
+      const content = this.currentContent?.contentBody;
+      if (!content) {
+        return '';
+      }
+      
+      // 1. API를 거치며 텍스트가 된 '\\n'을 실제 줄바꿈 문자로 변환
+      const unescapedString = content.replace(/\\n/g, '\n');
+      
+      // 2. marked 라이브러리로 마크다운을 HTML로 변환
+      // { breaks: true } 옵션은 단순 줄바꿈(\n)을 <br> 태그
+      return marked.parse(unescapedString, { breaks: true });
+    }
   },
+
   methods: {
     extractTocItems() {
       this.tocItems = [];
@@ -129,254 +144,118 @@ export default {
 </script>
 
 <style scoped>
-.main-content {
-  flex: 1;
-  padding: 0;
-  overflow-y: auto;
-}
-
-.breadcrumb {
-  background: var(--card-bg);
-  padding: 16px 32px;
-  border-bottom: 1px solid var(--border-color);
-  font-size: 14px;
-  color: #6c757d;
-}
-
-.separator {
-  margin: 0 8px;
-  color: #dee2e6;
-}
-
+/* --- 1. 기본 레이아웃 및 여백 --- */
 .content-layout {
   display: flex;
   position: relative;
+  gap: 32px;
 }
-
 .content-area {
   flex: 1;
-  padding: 32px;
-  max-width: calc(100% - 250px);
+  min-width: 0;
 }
-
 .toc-sidebar {
   width: 250px;
+  flex-shrink: 0;
   position: sticky;
   top: 80px;
   height: fit-content;
-  margin-left: 32px;
-  flex-shrink: 0;
 }
 
-.toc-container {
-  background: var(--card-bg);
-  border-radius: 8px;
-  border: 1px solid var(--border-color);
-  padding: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-}
-
-.toc-title {
-  margin: 0 0 16px 0;
-  font-size: 14px;
-  font-weight: 600;
-  color: #495057;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.toc-nav {
-  margin: 0;
-}
-
-.toc-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.toc-item {
-  margin-bottom: 4px;
-}
-
-.toc-link {
-  display: block;
-  padding: 6px 12px;
-  color: #6c757d;
-  text-decoration: none;
-  font-size: 14px;
-  border-radius: 4px;
-  transition: all 0.2s ease;
-  line-height: 1.4;
-}
-
-.toc-link:hover {
-  background-color: var(--hover-bg);
-  color: var(--text-color);
-}
-
-.toc-item.active .toc-link {
-  background-color: #e3f2fd;
-  color: #1976d2;
-  font-weight: 500;
-  border-left: 3px solid #1976d2;
-  padding-left: 9px;
-}
-
-.content-section {
-  background: var(--card-bg);
-  border-radius: 8px;
-  padding: 32px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-}
-
-.content-section h1 {
-  margin: 0 0 24px 0;
-  color: var(--text-color);
-  font-size: 28px;
-  font-weight: 700;
-}
-
-.content-section h3 {
-  margin: 24px 0 12px 0;
-  color: var(--text-color);
-  font-size: 18px;
-  font-weight: 600;
-}
-
-.content-body p {
-  line-height: 1.6;
-  color: #6c757d;
-  margin-bottom: 16px;
-}
-
-.feature-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 24px;
-  margin-top: 24px;
-}
-
-.feature-card {
-  background: #f8f9fa;
-  padding: 24px;
-  border-radius: 8px;
-  text-align: center;
-  transition: transform 0.2s ease;
-}
-
-.feature-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.feature-icon {
-  font-size: 32px;
-  margin-bottom: 16px;
-}
-
-.feature-card h3 {
-  margin: 0 0 12px 0;
-  font-size: 16px;
-  font-weight: 600;
-  color: #495057;
-}
-
-.feature-card p {
-  margin: 0;
-  font-size: 14px;
-  color: #6c757d;
-  line-height: 1.5;
-}
-
-.step-guide {
-  margin-top: 24px;
-}
-
-.step {
-  display: flex;
+/* --- 2. 상단 경로(Breadcrumb) 디자인 --- */
+.breadcrumb {
+  padding: 12px 0;
   margin-bottom: 24px;
-  align-items: flex-start;
-}
-
-.step-number {
-  width: 32px;
-  height: 32px;
-  background: #1976d2;
-  color: #fff;
-  border-radius: 50%;
+  font-size: 14px;
   display: flex;
   align-items: center;
-  justify-content: center;
-  font-weight: 600;
-  font-size: 14px;
-  margin-right: 16px;
-  flex-shrink: 0;
+  gap: 8px;
 }
+.breadcrumb span:not(.separator) { color: #868e96; }
+.breadcrumb span:last-child { color: var(--text-color); font-weight: 500; }
+.breadcrumb .separator { color: #ced4da; }
 
-.step-content h3 {
-  margin: 0 0 8px 0;
+/* --- 3. 콘텐츠 섹션 --- */
+.content-section {
+  background: var(--card-bg);
+  border-radius: 12px;
+  padding: 40px;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+}
+.content-section > h1 {
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.3;
+  margin-bottom: 10px;
+  letter-spacing: -0.5px;
+  color: var(--text-color);
+}
+.content-section-description {
   font-size: 16px;
-  color: #495057;
-}
-
-.step-content p {
-  margin: 0;
   color: #6c757d;
-  line-height: 1.5;
+  margin-top: -16px;
+  margin-bottom: 32px;
 }
 
-.feature-list {
-  margin: 16px 0;
-  padding-left: 20px;
+/* --- 4. v-html 마크다운 콘텐츠 스타일 (여백 수정) --- */
+.content-body {
+  overflow-wrap: break-word;
 }
 
-.feature-list li {
-  margin-bottom: 8px;
-  color: #6c757d;
-  line-height: 1.5;
+/* ✨ 여기가 핵심 수정 부분입니다 ✨ */
+.content-body :deep(h2) {
+  margin-top: 1em;    /* 섹션 구분을 위해 위쪽 여백은 유지 */
+  margin-bottom: 0.1em; /* 제목과 아래 내용 사이 간격은 축소 */
+  font-size: 16px;
+  font-weight: 600;
+  padding-bottom: 0.4em;
+  border-bottom: 1px solid var(--border-color);
+  scroll-margin-top: 90px;
 }
+.content-body :deep(h3) {
+  margin-top: 2em;      /* h2보다 위쪽 여백 축소 */
+  margin-bottom: 0.6em; /* 제목과 아래 내용 사이 간격은 축소 */
+  font-size: 20px;
+  font-weight: 600;
+  scroll-margin-top: 90px;
+}
+.content-body :deep(p),
+.content-body :deep(ul),
+.content-body :deep(ol),
+.content-body :deep(blockquote) {
+  margin-bottom: 1.2em; /* 단락 간의 기본 간격 통일 */
+}
+.content-body :deep(h1) { display: none; }
+/* (이하 다른 스타일은 이전과 동일) */
 
+.content-body :deep(p) { line-height: 1.7; color: #495057; }
+.content-body :deep(img) { max-width: 100%; display: block; margin: 2.5em auto; border-radius: 8px; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08); border: 1px solid var(--border-color); }
+.content-body :deep(ul),
+.content-body :deep(ol) { padding-left: 1.8em; }
+.content-body :deep(li) { margin-bottom: 0.6em; line-height: 1.7; color: #495057; }
+.content-body :deep(a) { color: #1976d2; text-decoration: none; border-bottom: 1px solid #a0cff1; transition: all 0.2s ease; font-weight: 500; }
+.content-body :deep(a:hover) { color: #1565c0; background-color: #e3f2fd; }
+.content-body :deep(code) { background-color: #f1f3f5; padding: 0.2em 0.5em; border-radius: 4px; font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace; font-size: 0.9em; color: #343a40; }
+.content-body :deep(blockquote) { padding: 1em 1.5em; border-left: 4px solid #a0cff1; background-color: #f8f9fa; color: #6c757d; }
+.content-body :deep(hr) { border: none; border-top: 1px solid var(--border-color); margin: 3em 0; }
+
+/* --- 5. 목차(TOC) 사이드바 --- */
+.toc-container { background: transparent; border: none; padding: 0; box-shadow: none; }
+.toc-title { margin: 0 0 16px 8px; font-size: 14px; font-weight: 600; color: #343a40; letter-spacing: 0.5px; }
+.toc-list { list-style: none; margin: 0; padding: 0; }
+.toc-item { margin-bottom: 4px; }
+.toc-link { display: block; padding: 8px 12px; color: #868e96; text-decoration: none; font-size: 14px; border-radius: 6px; transition: all 0.2s ease; border-left: 3px solid transparent; }
+.toc-link:hover { background-color: var(--hover-bg); color: var(--text-color); }
+.toc-item.active .toc-link { background-color: #e3f2fd; color: #1976d2; font-weight: 600; border-left: 3px solid #1976d2; }
+
+/* --- 6. 반응형 디자인 --- */
 @media (max-width: 1024px) {
-  .content-layout {
-    flex-direction: column;
-  }
-
-  .content-area {
-    max-width: 100%;
-    padding: 32px 16px;
-  }
-
-  .toc-sidebar {
-    width: 100%;
-    position: relative;
-    top: auto;
-    margin-left: 0;
-    order: -1;
-    margin-bottom: 24px;
-  }
-
-  .toc-container {
-    margin: 0 16px;
-  }
+  .content-layout { flex-direction: column; gap: 24px; }
+  .content-area { max-width: 100%; }
+  .toc-sidebar { width: 100%; position: relative; top: auto; margin-left: 0; margin-bottom: 0; order: -1; }
 }
-
 @media (max-width: 768px) {
-  .content-area {
-    padding: 16px;
-  }
-
-  .content-section {
-    padding: 24px 16px;
-  }
-
-  .feature-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .toc-container {
-    margin: 0 8px;
-    padding: 16px;
-  }
+  .content-section { padding: 24px 16px; }
 }
 </style>
