@@ -3,9 +3,17 @@
     <ManualSidebar
       :currentSection="section"
       :activeItemId="activeItemId"
-      @item-select="handleItemSelect"
+      @section-change="handleItemSelect"
     />
     <main class="main-content">
+      <div class="back-to-main">
+        <button @click="goToMainPage" class="back-button">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+            <path d="M19 12H5M12 19L5 12L12 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+          메인으로 돌아가기
+        </button>
+      </div>
       <ManualContent 
         :activeItem="activeItem" 
       />
@@ -28,10 +36,7 @@ export default {
     ManualContent
   },
   props: {
-    section: {
-      type: String,
-      required: true
-    }
+    section: { type: String, required: true }
   },
   data() {
     return {
@@ -39,10 +44,7 @@ export default {
     }
   },
   computed: {
-    // Category 스토어에서 categoryTree 상태를 가져옴
     ...mapState(useCategoryStore, ['categoryTree']),
-
-    // activeItemId를 기반으로 현재 선택된 카테고리의 전체 데이터를 찾음
     activeItem() {
       if (!this.activeItemId || !this.categoryTree) return null;
       for (const parent of this.categoryTree) {
@@ -55,22 +57,29 @@ export default {
     }
   },
   methods: {
-    // ManualContent 스토어에서 fetchContent 액션을 가져옴
     ...mapActions(useManualContentStore, ['fetchContent']),
-    
-    // ManualSidebar에서 item-select 이벤트가 발생했을 때 호출됨
     handleItemSelect(itemId) {
       this.activeItemId = itemId;
+    },
+    // 메인으로 돌아가는 라우팅 메서드
+    goToMainPage() {
+      this.$router.push('/');
     }
   },
   watch: {
-    // activeItemId가 변경될 때마다 콘텐츠를 불러오는 API 호출
     activeItemId: {
       handler(newId) {
         if (newId) {
           this.fetchContent('P1', newId);
         }
       }
+    },
+    // section prop이 바뀔 때 activeItemId를 초기화
+    section: {
+        handler() {
+            this.activeItemId = null;
+        },
+        immediate: true
     }
   }
 }

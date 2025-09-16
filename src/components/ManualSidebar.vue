@@ -87,7 +87,7 @@ export default {
 
     selectSection(sectionId) {
       this.$emit('section-change', sectionId);
-    },
+    },    
     
     toggleSection(sectionKey) {
       this.collapsedSections[sectionKey] = !this.collapsedSections[sectionKey];
