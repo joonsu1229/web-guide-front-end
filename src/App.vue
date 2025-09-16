@@ -9,7 +9,7 @@
             <div class="flex justify-between items-center h-16">
               <!-- Logo -->
               <div class="flex items-center">
-                <div class="flex-shrink-0 flex items-center gap-3 logo-container">
+                <div class="flex-shrink-0 flex items-center gap-3 logo-container" @click="goHome">
                   <img src="/src/assets/workthrough-icon.png" alt="워크쓰루 로고" class="logo-icon" />
                   <h1 class="text-2xl font-bold logo-text">
                     워크쓰루 헬프센터
@@ -165,6 +165,10 @@ const applyDarkMode = () => {
   } else {
     document.documentElement.classList.remove('dark-mode')
   }
+}
+
+const goHome = () => {
+  router.push('/')
 }
 </script>
 
