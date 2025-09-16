@@ -4,9 +4,9 @@
     <div class="flex justify-between items-center">
       <div>
         <h1 class="text-3xl font-bold text-gray-900">문서 관리</h1>
-        <p class="text-gray-600 mt-1">검색 데이터베이스의 문서를 관리합니다</p>
+        <p class="text-gray-600 mt-1">사용자 매뉴얼의 문서를 관리합니다</p>
       </div>
-      <n-button type="primary" @click="showCreateModal = true">
+      <n-button type="primary" @click="openCreateModal">
         <template #icon>
           <n-icon>
             <AddOutline />
@@ -289,6 +289,7 @@
 import { ref, computed, onMounted, h } from 'vue'
 import { useMessage, NButton, NIcon, NTag, NText, NEllipsis } from 'naive-ui'
 import { useDocumentStore } from '@/stores/documentStore'
+import { usePortalMenuStore } from '@/stores/usePortalMenuStore'
 import MarkdownEditor from '@/components/MarkdownEditor.vue'
 import MarkdownIt from 'markdown-it'
 import hljs from 'highlight.js'
@@ -308,6 +309,7 @@ import {
 
 const message = useMessage()
 const documentStore = useDocumentStore()
+const portalMenuStore = usePortalMenuStore()
 
 // Markdown-it 설정
 const md = new MarkdownIt({
@@ -357,19 +359,32 @@ const formRules = {
   ]
 }
 
-// Options
-const categoryOptions = [
-  { label: '전체', value: '' },
-  { label: '기술', value: 'technology' },
-  { label: '데이터베이스', value: 'database' },
-  { label: 'AI', value: 'ai' }
-]
+// Options - 포탈 메뉴 데이터 기반
+const categoryOptions = computed(() => {
+  const options = [{ label: '전체', value: '' }]
+  if (portalMenuStore.banners && portalMenuStore.banners.length > 0) {
+    portalMenuStore.banners.forEach(menu => {
+      options.push({
+        label: menu.title,
+        value: menu.id.toString()
+      })
+    })
+  }
+  return options
+})
 
-const categorySelectOptions = [
-  { label: '기술', value: 'technology' },
-  { label: '데이터베이스', value: 'database' },
-  { label: 'AI', value: 'ai' }
-]
+const categorySelectOptions = computed(() => {
+  const options = []
+  if (portalMenuStore.banners && portalMenuStore.banners.length > 0) {
+    portalMenuStore.banners.forEach(menu => {
+      options.push({
+        label: menu.title,
+        value: menu.id.toString()
+      })
+    })
+  }
+  return options
+})
 
 // Table configuration
 const columns = [
@@ -547,13 +562,30 @@ const handleSubmit = async () => {
   }
 }
 
-const closeModal = () => {
-  showCreateModal.value = false
-  editingDocument.value = null
+const openCreateModal = () => {
+  const defaultCategory = portalMenuStore.banners && portalMenuStore.banners.length > 0
+    ? portalMenuStore.banners[0].id.toString()
+    : ''
+
   formData.value = {
     title: '',
     content: '',
-    category: ''
+    category: defaultCategory
+  }
+  showCreateModal.value = true
+}
+
+const closeModal = () => {
+  showCreateModal.value = false
+  editingDocument.value = null
+  const defaultCategory = portalMenuStore.banners && portalMenuStore.banners.length > 0
+    ? portalMenuStore.banners[0].id.toString()
+    : ''
+
+  formData.value = {
+    title: '',
+    content: '',
+    category: defaultCategory
   }
   formRef.value?.restoreValidation()
 }
@@ -575,9 +607,14 @@ const getCategoryColor = (category) => {
 // Lifecycle
 onMounted(async () => {
   try {
-    await documentStore.fetchDocuments()
+    // 문서와 포탈 메뉴 데이터를 병렬로 로드
+    await Promise.all([
+      documentStore.fetchDocuments(),
+      portalMenuStore.fetchPortalMenus('P1') // 기본 포탈 ID를 P1로 가정
+    ])
   } catch (error) {
-    message.error('문서 목록을 불러오는 중 오류가 발생했습니다')
+    message.error('데이터를 불러오는 중 오류가 발생했습니다')
+    console.error(error)
   }
 })
 </script>
