@@ -4,6 +4,7 @@ import DocumentView from '@/views/DocumentView.vue'
 import AnalyticsView from '@/views/AnalyticsView.vue'
 import JobManagement from '@/views/JobManagement.vue'
 import Manual from '@/views/Manual.vue'
+import ManualDetailView from '@/views/ManualDetailView.vue' 
 
 const routes = [
     {
@@ -15,6 +16,12 @@ const routes = [
       icon: 'document'
     }
   },
+  {
+    path: '/guide/:section', 
+    name: 'ManualDetail',
+    component: ManualDetailView,
+    props: true 
+  },  
   {
     path: '/JobManagement',
     name: 'JobManagement',
