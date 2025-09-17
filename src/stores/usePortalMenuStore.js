@@ -17,16 +17,18 @@ export const usePortalMenuStore = defineStore('portalMenu', () => {
       const data = await portalMenuAPI.getPortalMenus(portalId)
       
       const transformedData = data.map(menu => {
-        let tagsArray = []
-        // menu.tags가 실제 문자열이고, 빈 문자열이 아닐 때만 split을 실행하도록 수정
-        if (typeof menu.tags === 'string' && menu.tags.length > 0) {
-          tagsArray = menu.tags.split(',').map(tag => tag.trim())
-        }
-        return {
-          ...menu,
-          tags: tagsArray
-        }
-      })
+      let tagsArray = []
+
+      if (Array.isArray(menu.tags)) {
+        // 이미 배열인 경우
+        tagsArray = menu.tags.map(tag => tag.trim())
+      }
+
+  return {
+    ...menu,
+    tags: tagsArray
+  }
+})
 
       banners.value = transformedData
     } catch (err) {
