@@ -123,7 +123,7 @@ export default {
 <style scoped>
 .search-container {
   width: 100%;
-  max-width: 600px;
+  max-width: 400px;
   margin: 0 auto;
   position: relative;
   padding: 4px 0;
