@@ -6,14 +6,6 @@
         <h1 class="text-3xl font-bold text-gray-900">매뉴얼 관리</h1>
         <p class="text-gray-600 mt-1">사용자 매뉴얼을 관리합니다</p>
       </div>
-      <n-button type="primary" @click="openCreateModal">
-        <template #icon>
-          <n-icon>
-            <AddOutline />
-          </n-icon>
-        </template>
-        새 매뉴얼 추가
-      </n-button>
     </div>
 
     <!-- Filters and Search -->
@@ -144,20 +136,29 @@
           label-placement="top"
           require-mark-placement="right-hanging"
         >
-          <n-form-item label="제목" path="title">
-            <n-input
-              v-model:value="formData.title"
-              placeholder="매뉴얼 제목을 입력하세요"
-              :maxlength="500"
-              show-count
+          <n-form-item label="메뉴" path="menu">
+            <n-select
+              v-model:value="formData.menu"
+              :options="categorySelectOptions"
+              placeholder="메뉴를 선택하세요"
             />
           </n-form-item>
 
           <n-form-item label="카테고리" path="category">
             <n-select
               v-model:value="formData.category"
-              :options="categorySelectOptions"
+              :options="categoryOptions"
               placeholder="카테고리를 선택하세요"
+              disabled
+            />
+          </n-form-item>
+
+          <n-form-item label="설명" path="title">
+            <n-input
+              v-model:value="formData.title"
+              placeholder="카테고리 설명을 입력하세요"
+              :maxlength="500"
+              show-count
             />
           </n-form-item>
 
@@ -346,14 +347,18 @@ const formRef = ref(null)
 const formData = ref({
   title: '',
   content: '',
+  menu: '',
   category: ''
 })
 
 // Form rules
 const formRules = {
   title: [
-    { required: true, message: '제목을 입력해주세요', trigger: 'blur' },
-    { min: 1, max: 500, message: '제목은 1-500자 사이여야 합니다', trigger: 'blur' }
+    { required: true, message: '설명을 입력해주세요', trigger: 'blur' },
+    { min: 1, max: 500, message: '설명은 1-500자 사이여야 합니다', trigger: 'blur' }
+  ],
+  menu: [
+    { required: true, message: '메뉴를 선택해주세요', trigger: 'change' }
   ],
   category: [
     { required: true, message: '카테고리를 선택해주세요', trigger: 'change' }
@@ -364,14 +369,14 @@ const formRules = {
   ]
 }
 
-// Options - 포탈 메뉴 데이터 기반
+// Options - 리스트의 카테고리 데이터 기반
 const categoryOptions = computed(() => {
-  const options = [{ label: '전체', value: '' }]
-  if (portalMenuStore.banners && portalMenuStore.banners.length > 0) {
-    portalMenuStore.banners.forEach(menu => {
+  const options = []
+  if (categories.value && categories.value.length > 0) {
+    categories.value.forEach(category => {
       options.push({
-        label: menu.title,
-        value: menu.id.toString()
+        label: category.name || category.title,
+        value: category.id.toString()
       })
     })
   }
@@ -390,6 +395,7 @@ const categorySelectOptions = computed(() => {
   }
   return options
 })
+
 
 // Table configuration - 카테고리 데이터용
 const columns = [
@@ -443,14 +449,25 @@ const columns = [
   {
     title: '작업',
     key: 'actions',
-    width: 180,
+    width: 220,
     align: 'center',
     render: (row) => [
       h(NButton, {
         size: 'small',
         quaternary: true,
+        type: 'success',
+        onClick: () => openCreateModal(row),
+        style: { marginRight: '4px' }
+      }, {
+        icon: () => h(NIcon, null, { default: () => h(AddOutline) }),
+        default: () => '추가'
+      }),
+      h(NButton, {
+        size: 'small',
+        quaternary: true,
         type: 'info',
-        onClick: () => previewDocumentHandler(row)
+        onClick: () => previewDocumentHandler(row),
+        style: { marginLeft: '4px' }
       }, {
         icon: () => h(NIcon, null, { default: () => h(EyeOutline) }),
         default: () => '보기'
@@ -460,7 +477,7 @@ const columns = [
         quaternary: true,
         type: 'primary',
         onClick: () => editDocument(row),
-        style: { marginLeft: '8px' }
+        style: { marginLeft: '4px' }
       }, {
         icon: () => h(NIcon, null, { default: () => h(CreateOutline) }),
         default: () => '수정'
@@ -470,7 +487,7 @@ const columns = [
         quaternary: true,
         type: 'error',
         onClick: () => deleteDocument(row),
-        style: { marginLeft: '8px' }
+        style: { marginLeft: '4px' }
       }, {
         icon: () => h(NIcon, null, { default: () => h(TrashOutline) }),
         default: () => '삭제'
@@ -529,10 +546,26 @@ const previewDocumentHandler = (document) => {
 
 const editDocument = (document) => {
   editingDocument.value = document
-  formData.value = {
-    title: document.title,
-    content: document.content,
-    category: document.category
+  const defaultMenu = portalMenuStore.banners && portalMenuStore.banners.length > 0
+    ? portalMenuStore.banners[0].id.toString()
+    : ''
+
+  // document가 카테고리 행인 경우 (document.name이 있으면 카테고리 행)
+  if (document.name && !document.title) {
+    formData.value = {
+      title: document.description || '',
+      content: '',
+      menu: defaultMenu,
+      category: document.id.toString()
+    }
+  } else {
+    // 실제 매뉴얼 문서인 경우
+    formData.value = {
+      title: document.title,
+      content: document.content,
+      menu: document.menu || defaultMenu,
+      category: document.category || ''
+    }
   }
   showPreviewModal.value = false
   showCreateModal.value = true
@@ -577,15 +610,26 @@ const handleSubmit = async () => {
   }
 }
 
-const openCreateModal = () => {
-  const defaultCategory = portalMenuStore.banners && portalMenuStore.banners.length > 0
+const openCreateModal = (categoryRow = null) => {
+  const defaultMenu = portalMenuStore.banners && portalMenuStore.banners.length > 0
     ? portalMenuStore.banners[0].id.toString()
     : ''
 
+  // 카테고리 행이 전달된 경우 해당 카테고리를 선택, 그렇지 않으면 첫 번째 카테고리 선택
+  const selectedCategory = categoryRow
+    ? categoryRow.id.toString()
+    : (categories.value && categories.value.length > 0 ? categories.value[0].id.toString() : '')
+
+  // 카테고리의 설명을 title에 설정
+  const categoryDescription = categoryRow
+    ? (categoryRow.description || '')
+    : (categories.value && categories.value.length > 0 ? (categories.value[0].description || '') : '')
+
   formData.value = {
-    title: '',
+    title: categoryDescription,
     content: '',
-    category: defaultCategory
+    menu: defaultMenu,
+    category: selectedCategory
   }
   showCreateModal.value = true
 }
@@ -593,13 +637,17 @@ const openCreateModal = () => {
 const closeModal = () => {
   showCreateModal.value = false
   editingDocument.value = null
-  const defaultCategory = portalMenuStore.banners && portalMenuStore.banners.length > 0
+  const defaultMenu = portalMenuStore.banners && portalMenuStore.banners.length > 0
     ? portalMenuStore.banners[0].id.toString()
+    : ''
+  const defaultCategory = categories.value && categories.value.length > 0
+    ? categories.value[0].id.toString()
     : ''
 
   formData.value = {
     title: '',
     content: '',
+    menu: defaultMenu,
     category: defaultCategory
   }
   formRef.value?.restoreValidation()
