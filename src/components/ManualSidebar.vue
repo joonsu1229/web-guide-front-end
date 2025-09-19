@@ -61,6 +61,14 @@ export default {
     isDark: {
       type: Boolean,
       default: false
+    },
+    initialActiveMenu: {
+      type: String,
+      default: null
+    },
+    forceMenuOpen: {
+      type: Boolean,
+      default: false
     }
   },
   emits: ['section-change'],
@@ -101,15 +109,86 @@ export default {
     initializeCollapsedState() {
       const state = {};
       const menus = [...this.portalMenus].sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
+
+      // 기본적으로 모든 메뉴를 닫힌 상태로 설정
       for (const menu of menus) {
-        state[menu.section] = true;
+        state[menu.section] = true; // true = 닫힌 상태
       }
+
+      // 배너에서 온 경우 해당 메뉴만 열기
+      if (this.$route.query.menuOpen === 'true' && this.$route.query.activeMenu) {
+        const targetMenu = this.portalMenus.find(menu => menu.title === this.$route.query.activeMenu);
+        if (targetMenu) {
+          state[targetMenu.section] = false; // false = 열린 상태
+          console.log('초기화 시 특정 메뉴 열기:', targetMenu.title, targetMenu.section);
+        }
+      }
+
       this.collapsedSections = state;
+      console.log('메뉴 초기화 완료:', state);
+    },
+
+    handleInitialActiveMenu() {
+      if (this.forceMenuOpen && this.initialActiveMenu && this.portalMenus.length > 0) {
+        // 배너에서 전달된 메뉴 제목으로 해당 메뉴의 section을 찾기
+        const targetMenu = this.portalMenus.find(menu => menu.title === this.initialActiveMenu);
+        if (targetMenu) {
+          // 해당 메뉴를 열기 (Vue.set 대신 직접 할당)
+          this.collapsedSections = {
+            ...this.collapsedSections,
+            [targetMenu.section]: false
+          };
+          // 카테고리 데이터도 미리 로드
+          this.fetchCategoryTree('P1', targetMenu.section);
+          console.log('메뉴 열림:', targetMenu.title, targetMenu.section);
+        }
+      }
+    },
+
+    forceOpenMenu(menuTitle) {
+      const targetMenu = this.portalMenus.find(menu => menu.title === menuTitle);
+      if (targetMenu) {
+        console.log('강제로 메뉴 열기:', menuTitle, targetMenu.section);
+        // 강제로 상태 업데이트
+        const newState = { ...this.collapsedSections };
+        newState[targetMenu.section] = false;
+        this.collapsedSections = newState;
+        this.fetchCategoryTree('P1', targetMenu.section);
+        console.log('메뉴 상태 업데이트 완료:', this.collapsedSections);
+      }
     }
   },
   async created() {
     await this.portalMenuStore.fetchPortalMenus('P1');
     this.initializeCollapsedState();
+  },
+  watch: {
+    collapsedSections: {
+      handler(newVal) {
+        console.log('collapsedSections 변경됨:', newVal);
+      },
+      deep: true
+    },
+    '$route.query': {
+      handler(newQuery) {
+        console.log('쿼리 변경됨:', newQuery);
+        if (newQuery.menuOpen === 'true' && newQuery.activeMenu && this.portalMenus.length > 0) {
+          this.$nextTick(() => {
+            this.forceOpenMenu(newQuery.activeMenu);
+          });
+        }
+      }
+    },
+    portalMenus: {
+      handler() {
+        console.log('portalMenus 로드됨:', this.portalMenus.length);
+        if (this.portalMenus.length > 0 && this.$route.query.menuOpen === 'true' && this.$route.query.activeMenu) {
+          this.$nextTick(() => {
+            this.forceOpenMenu(this.$route.query.activeMenu);
+          });
+        }
+      }
+    }
   }
 }
 </script>

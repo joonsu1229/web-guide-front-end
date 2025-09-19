@@ -3,6 +3,8 @@
     <ManualSidebar
       :currentSection="section"
       :activeItemId="activeItemId"
+      :initialActiveMenu="$route.query.activeMenu"
+      :forceMenuOpen="$route.query.menuOpen === 'true'"
       @section-change="handleItemSelect"
     />
     <main class="main-content">

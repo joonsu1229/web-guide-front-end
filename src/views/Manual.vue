@@ -112,7 +112,29 @@ let slideInterval = null
 
 // 배너를 클릭하면 showMainPage를 바꾸는 대신, router.push로 페이지를 이동시킴
 function handleBannerSelect(section) {
-  router.push(`/guide/${section}`)
+  // 배너 제목을 기준으로 메뉴 매핑
+  const menuMapping = {
+    'getting-started': '시작하기',
+    'portal': '포탈(Portal)',
+    'approval': '전자결재',
+    'e-hr': 'e-HR',
+    'board': '게시판',
+    'reserve': '업무지원',
+    'mobile': '모바일',
+    'contract': '전자계약',
+    'ai': 'AI'
+  }
+
+  const menuTitle = menuMapping[section]
+
+  // 쿼리 파라미터로 활성 메뉴 정보 전달
+  router.push({
+    path: `/guide/${section}`,
+    query: {
+      activeMenu: menuTitle,
+      menuOpen: 'true'
+    }
+  })
 }
 
 function handleSearch(query) {
