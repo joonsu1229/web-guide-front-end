@@ -94,7 +94,10 @@
             </svg>
           </div>
           <div class="banner-content">
-            <h3 class="banner-title">{{ banner.title }}</h3>
+            <h3 class="banner-title">
+              {{ banner.title }}
+              <span v-if="banner.title === '전자계약' || banner.title === 'AI'" class="new-badge">NEW</span>
+            </h3>
             <p class="banner-description">{{ banner.description }}</p>
             <div class="banner-tags">
               <span v-for="tag in banner.tags" :key="tag" class="banner-tag">
@@ -593,6 +596,37 @@ export default {
   font-weight: 600;
   color: var(--text-color);
   margin: 0 0 8px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.new-badge {
+  background: linear-gradient(135deg, #ff6b6b, #ff8e8e);
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 4px rgba(255, 107, 107, 0.3);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 2px 4px rgba(255, 107, 107, 0.3);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 4px 8px rgba(255, 107, 107, 0.4);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 2px 4px rgba(255, 107, 107, 0.3);
+  }
 }
 
 .banner-description {
