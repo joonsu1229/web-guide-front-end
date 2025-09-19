@@ -23,7 +23,7 @@ export const categoryAPI = {
    * @param {string} [section] - 조회할 섹션 (선택사항)
    * @returns {Promise<Array>} Category DTO 배열
    */
-  async getCategories(portalId, section = null) {
+  async getCategories(portalId, section) {
     const params = { portalId }
     if (section) {
       params.section = section

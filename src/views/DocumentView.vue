@@ -1,6 +1,5 @@
 <template>
   <div class="space-y-6">
-    <!-- Page Header -->
     <div class="flex justify-between items-center">
       <div>
         <h1 class="text-3xl font-bold text-gray-900">매뉴얼 관리</h1>
@@ -8,7 +7,6 @@
       </div>
     </div>
 
-    <!-- Filters and Search -->
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
       <div class="flex flex-col md:flex-row gap-4">
         <div class="flex-1">
@@ -45,13 +43,12 @@
       </div>
     </div>
 
-    <!-- Statistics -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
       <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
         <div class="flex items-center">
           <div class="flex-1">
             <p class="text-sm font-medium text-gray-600">총 매뉴얼 수</p>
-            <p class="text-2xl font-bold text-gray-900">{{ categories.length }}</p>
+            <p class="text-2xl font-bold text-gray-900">{{ categoryStore.categories.length }}</p>
           </div>
           <n-icon size="24" color="#6366f1">
             <DocumentTextOutline />
@@ -96,13 +93,12 @@
       </div>
     </div>
 
-    <!-- Documents Table -->
     <div class="bg-white rounded-lg shadow-sm border border-gray-200">
       <div class="px-4 py-5 sm:p-6">
         <n-data-table
           :columns="columns"
-          :data="categories"
-          :loading="isLoadingCategories"
+          :data="utilStore.flatCategoriesWithMenuTitle"
+          :loading="categoryStore.isLoading"
           :pagination="paginationConfig"
           :row-key="(row) => row.id"
           size="medium"
@@ -111,7 +107,6 @@
       </div>
     </div>
 
-    <!-- Create/Edit Document Modal -->
     <n-modal v-model:show="showCreateModal" :mask-closable="false">
       <n-card
         style="width: 80vw; max-width: 800px"
@@ -141,6 +136,7 @@
               v-model:value="formData.menu"
               :options="categorySelectOptions"
               placeholder="메뉴를 선택하세요"
+              disabled
             />
           </n-form-item>
 
@@ -186,7 +182,6 @@
       </n-card>
     </n-modal>
 
-    <!-- Delete Confirmation Modal -->
     <n-modal v-model:show="showDeleteModal">
       <n-card
         style="width: 400px"
@@ -198,7 +193,7 @@
       >
         <n-space vertical>
           <n-text>정말로 이 매뉴얼을 삭제하시겠습니까?</n-text>
-          <n-text strong>{{ deletingDocument?.title }}</n-text>
+          <n-text strong>{{ deletingDocument?.title || deletingDocument?.name }}</n-text>
           <n-text depth="3" size="small">
             이 작업은 되돌릴 수 없습니다.
           </n-text>
@@ -219,7 +214,6 @@
       </n-card>
     </n-modal>
 
-    <!-- Document Preview Modal -->
     <n-modal v-model:show="showPreviewModal" :mask-closable="false">
       <n-card
         style="width: 80vw; max-width: 900px"
@@ -291,7 +285,9 @@ import { ref, computed, onMounted, h } from 'vue'
 import { useMessage, NButton, NIcon, NTag, NText, NEllipsis } from 'naive-ui'
 import { useDocumentStore } from '@/stores/documentStore'
 import { usePortalMenuStore } from '@/stores/usePortalMenuStore'
-import { categoryAPI } from '@/api/categoryAPI'
+import { useCategoryStore } from '@/stores/useCategoryStore'
+import { useUtilStore } from '@/stores/useUtilStore'
+import { useManualContentStore } from '@/stores/useManualContentStore'
 import MarkdownEditor from '@/components/MarkdownEditor.vue'
 import MarkdownIt from 'markdown-it'
 import hljs from 'highlight.js'
@@ -309,13 +305,13 @@ import {
   EyeOutline
 } from '@vicons/ionicons5'
 
+// 스토어 인스턴스 생성
 const message = useMessage()
 const documentStore = useDocumentStore()
 const portalMenuStore = usePortalMenuStore()
-
-// 카테고리 데이터 상태
-const categories = ref([])
-const isLoadingCategories = ref(false)
+const categoryStore = useCategoryStore()
+const utilStore = useUtilStore()
+const manualContentStore = useManualContentStore()
 
 // Markdown-it 설정
 const md = new MarkdownIt({
@@ -369,35 +365,27 @@ const formRules = {
   ]
 }
 
-// Options - 리스트의 카테고리 데이터 기반
 const categoryOptions = computed(() => {
-  const options = []
-  if (categories.value && categories.value.length > 0) {
-    categories.value.forEach(category => {
-      options.push({
-        label: category.name || category.title,
-        value: category.id.toString()
-      })
-    })
+  if (!categoryStore.categories || categoryStore.categories.length === 0) {
+    return []
   }
-  return options
+  return categoryStore.categories.map(category => ({
+    label: category.name || category.title,
+    value: category.id.toString()
+  }))
 })
 
 const categorySelectOptions = computed(() => {
-  const options = []
-  if (portalMenuStore.banners && portalMenuStore.banners.length > 0) {
-    portalMenuStore.banners.forEach(menu => {
-      options.push({
-        label: menu.title,
-        value: menu.id.toString()
-      })
-    })
+  if (!portalMenuStore.banners || portalMenuStore.banners.length === 0) {
+    return []
   }
-  return options
+  return portalMenuStore.banners.map(menu => ({
+    label: menu.title,
+    value: menu.id.toString()
+  }))
 })
 
-
-// Table configuration - 카테고리 데이터용
+// Table configuration
 const columns = [
   {
     title: 'ID',
@@ -406,10 +394,16 @@ const columns = [
     align: 'center'
   },
   {
+    title: '메뉴',
+    key: 'menuTitle',
+    width: 80,
+    align: 'center'
+  },  
+  {
     title: '카테고리 이름',
     key: 'name',
     minWidth: 200,
-    render: (row) => h(NEllipsis, { style: { maxWidth: '300px' } }, {
+    render: (row) => h(NEllipsis, { style: { maxWidth: '250px' } }, {
       default: () => row.name || row.title
     })
   },
@@ -417,7 +411,7 @@ const columns = [
     title: '설명',
     key: 'description',
     minWidth: 250,
-    render: (row) => h(NEllipsis, { style: { maxWidth: '350px' } }, {
+    render: (row) => h(NEllipsis, { style: { maxWidth: '300px' } }, {
       default: () => row.description || '-'
     })
   },
@@ -434,6 +428,12 @@ const columns = [
     })
   },
   {
+    title: '작성일',
+    key: 'createdAt',
+    width: 80,
+    align: 'center'
+  },
+/*   {
     title: '날짜',
     key: 'date',
     width: 180,
@@ -445,7 +445,7 @@ const columns = [
         h('div', { class: 'text-gray-500' }, `수정: ${updated}`)
       ])
     }
-  },
+  }, */
   {
     title: '작업',
     key: 'actions',
@@ -456,7 +456,7 @@ const columns = [
         size: 'small',
         quaternary: true,
         type: 'success',
-        onClick: () => openCreateModal(row),
+        onClick: () => openCreateModal(row), // [수정됨] 행 정보를 전달하여 '추가' 모달 열기
         style: { marginRight: '4px' }
       }, {
         icon: () => h(NIcon, null, { default: () => h(AddOutline) }),
@@ -476,7 +476,7 @@ const columns = [
         size: 'small',
         quaternary: true,
         type: 'primary',
-        onClick: () => editDocument(row),
+        onClick: () => editDocument(row), // [수정됨] 행 정보를 전달하여 '수정' 모달 열기
         style: { marginLeft: '4px' }
       }, {
         icon: () => h(NIcon, null, { default: () => h(CreateOutline) }),
@@ -507,28 +507,18 @@ const paginationConfig = {
 // Computed properties
 const filteredDocuments = computed(() => {
   let documents = documentStore.documents
-
-  // Category filter
   if (filterCategory.value) {
     documents = documentStore.getDocumentsByCategory(filterCategory.value)
   }
-
-  // Search filter
   if (searchQuery.value) {
     documents = documentStore.searchDocuments(searchQuery.value)
   }
-
   return documents
 })
 
 // Methods
-const handleSearch = () => {
-  // Search is handled by computed property
-}
-
-const handleFilter = () => {
-  // Filter is handled by computed property
-}
+const handleSearch = () => {}
+const handleFilter = () => {}
 
 const handleRefresh = async () => {
   try {
@@ -544,32 +534,25 @@ const previewDocumentHandler = (document) => {
   showPreviewModal.value = true
 }
 
-const editDocument = (document) => {
-  editingDocument.value = document
-  const defaultMenu = portalMenuStore.banners && portalMenuStore.banners.length > 0
-    ? portalMenuStore.banners[0].id.toString()
-    : ''
+// [수정됨] editDocument 함수가 클릭된 행의 메뉴와 카테고리를 설정하도록 변경
+const editDocument = async (document) => {
+  editingDocument.value = document; // 수정 모드 활성화
 
-  // document가 카테고리 행인 경우 (document.name이 있으면 카테고리 행)
-  if (document.name && !document.title) {
-    formData.value = {
-      title: document.description || '',
-      content: '',
-      menu: defaultMenu,
-      category: document.id.toString()
-    }
-  } else {
-    // 실제 매뉴얼 문서인 경우
-    formData.value = {
-      title: document.title,
-      content: document.content,
-      menu: document.menu || defaultMenu,
-      category: document.category || ''
-    }
-  }
-  showPreviewModal.value = false
-  showCreateModal.value = true
+  await manualContentStore.fetchContent('P1', document.id);
+
+  // utilStore에서 제공하는 행 데이터는 id를 포함
+  const parentId = document.id ? document.id.toString() : '';
+
+  formData.value = {
+    title: document.description || '',
+    content: manualContentStore.currentContent?.contentBody || '',
+    menu: document.menuTitle, // 행의 id를 사용
+    category: document.id.toString() // 행의 카테고리 ID를 사용
+  };
+  showPreviewModal.value = false;
+  showCreateModal.value = true;
 }
+
 
 const deleteDocument = (document) => {
   deletingDocument.value = document
@@ -592,63 +575,47 @@ const handleSubmit = async () => {
   try {
     await formRef.value?.validate()
 
+    const sendData = {
+      categoryId : formData.value.category,
+      portalId: "P1",
+      contentBody: formData.value.content
+    }
     if (editingDocument.value) {
-      await documentStore.updateDocument(editingDocument.value.id, formData.value)
+      await documentStore.createDocument(sendData)
       message.success('매뉴얼이 수정되었습니다')
     } else {
-      await documentStore.createDocument(formData.value)
+      await documentStore.createDocument(sendData)
       message.success('매뉴얼이 생성되었습니다')
     }
-
     closeModal()
   } catch (error) {
-    if (error?.message) {
-      message.error(error.message)
-    } else {
-      message.error('양식을 확인해주세요')
-    }
+    message.error(error?.message || '양식을 확인해주세요')
   }
 }
 
-const openCreateModal = (categoryRow = null) => {
-  const defaultMenu = portalMenuStore.banners && portalMenuStore.banners.length > 0
-    ? portalMenuStore.banners[0].id.toString()
-    : ''
-
-  // 카테고리 행이 전달된 경우 해당 카테고리를 선택, 그렇지 않으면 첫 번째 카테고리 선택
-  const selectedCategory = categoryRow
-    ? categoryRow.id.toString()
-    : (categories.value && categories.value.length > 0 ? categories.value[0].id.toString() : '')
-
-  // 카테고리의 설명을 title에 설정
-  const categoryDescription = categoryRow
-    ? (categoryRow.description || '')
-    : (categories.value && categories.value.length > 0 ? (categories.value[0].description || '') : '')
+// [수정됨] openCreateModal 함수가 클릭된 행의 메뉴와 카테고리를 설정하도록 변경
+const openCreateModal = (categoryRow) => {
+  editingDocument.value = null; // 생성 모드이므로 수정 중인 문서는 null로 설정
 
   formData.value = {
-    title: categoryDescription,
+    title: categoryRow.description,
     content: '',
-    menu: defaultMenu,
-    category: selectedCategory
-  }
-  showCreateModal.value = true
-}
+    menu: categoryRow.menuTitle,
+    category: categoryRow.name
+  };
+  showCreateModal.value = true;
+};
 
 const closeModal = () => {
   showCreateModal.value = false
   editingDocument.value = null
-  const defaultMenu = portalMenuStore.banners && portalMenuStore.banners.length > 0
-    ? portalMenuStore.banners[0].id.toString()
-    : ''
-  const defaultCategory = categories.value && categories.value.length > 0
-    ? categories.value[0].id.toString()
-    : ''
-
+  
+  // 폼 데이터 초기화
   formData.value = {
     title: '',
     content: '',
-    menu: defaultMenu,
-    category: defaultCategory
+    menu: '',
+    category: ''
   }
   formRef.value?.restoreValidation()
 }
@@ -667,26 +634,14 @@ const getCategoryColor = (category) => {
   return colors[category] || 'default'
 }
 
-// 카테고리 데이터 로드 함수
-const fetchCategories = async () => {
-  try {
-    isLoadingCategories.value = true
-    categories.value = await categoryAPI.getCategories('P1')
-  } catch (error) {
-    message.error('카테고리 데이터를 불러오는 중 오류가 발생했습니다')
-    console.error(error)
-  } finally {
-    isLoadingCategories.value = false
-  }
-}
-
 // Lifecycle
 onMounted(async () => {
   try {
-    // 카테고리와 포탈 메뉴 데이터를 병렬로 로드
+    // 스토어의 액션을 병렬로 호출
     await Promise.all([
-      fetchCategories(),
-      portalMenuStore.fetchPortalMenus('P1') // 기본 포탈 ID를 P1로 가정
+      categoryStore.fetchCategories('P1'),
+      portalMenuStore.fetchPortalMenus('P1'),
+      utilStore.structuredMenu
     ])
   } catch (error) {
     message.error('데이터를 불러오는 중 오류가 발생했습니다')
@@ -694,7 +649,6 @@ onMounted(async () => {
   }
 })
 </script>
-
 <style scoped>
 .prose {
   line-height: 1.7;
