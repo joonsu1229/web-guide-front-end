@@ -216,7 +216,7 @@
 
     <n-modal v-model:show="showPreviewModal" :mask-closable="false">
       <n-card
-        style="width: 80vw; max-width: 900px"
+        style="width: 80vw; max-width: 800px"
         title="매뉴얼 미리보기"
         :bordered="false"
         size="huge"
@@ -232,46 +232,58 @@
         </template>
 
         <div v-if="previewDocument" class="space-y-4">
-          <div>
-            <h2 class="text-xl font-bold mb-2">{{ previewDocument.title }}</h2>
-            <div class="flex items-center gap-3 text-sm text-gray-500 mb-4">
-              <span>{{ documentStore.formatDate(previewDocument.createdAt) }}</span>
-              <n-divider vertical />
-              <n-tag size="small" :type="getCategoryColor(previewDocument.category)">
-                {{ documentStore.getCategoryLabel(previewDocument.category) }}
-              </n-tag>
-              <n-divider vertical />
-              <span>ID: {{ previewDocument.id }}</span>
+          <div class="space-y-3">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">메뉴</label>
+              <n-input
+                :value="previewDocument.menuTitle"
+                readonly
+                placeholder="메뉴"
+              />
             </div>
-          </div>
 
-          <n-divider />
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">카테고리</label>
+              <n-input
+                :value="previewDocument.name"
+                readonly
+                placeholder="카테고리"
+              />
+            </div>
 
-          <div class="prose max-w-none">
-            <div
-              v-if="previewDocument.content"
-              class="markdown-preview text-gray-700 leading-relaxed"
-              v-html="md.render(previewDocument.content)"
-            />
-            <div v-else class="text-gray-500 italic">
-              내용이 없습니다.
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">설명</label>
+              <n-input
+                :value="previewDocument.description"
+                readonly
+                placeholder="설명"
+              />
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">내용</label>
+              <div class="border border-gray-200 rounded-md p-4 min-h-[400px] bg-gray-50">
+                <div
+                  v-if="previewContent"
+                  class="markdown-preview text-gray-700 leading-relaxed prose max-w-none"
+                  v-html="md.render(previewContent)"
+                />
+                <div v-else class="text-gray-500 italic">
+                  내용이 없습니다.
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
         <template #footer>
           <div class="flex justify-end gap-2">
-            <n-button @click="editDocument(previewDocument)">
+            <n-button @click="showPreviewModal = false">닫기</n-button>
+            <n-button type="primary" @click="editDocument(previewDocument)">
               <template #icon>
                 <n-icon><CreateOutline /></n-icon>
               </template>
               수정
-            </n-button>
-            <n-button type="error" @click="deleteDocument(previewDocument)">
-              <template #icon>
-                <n-icon><TrashOutline /></n-icon>
-              </template>
-              삭제
             </n-button>
           </div>
         </template>
@@ -337,6 +349,7 @@ const showPreviewModal = ref(false)
 const editingDocument = ref(null)
 const deletingDocument = ref(null)
 const previewDocument = ref(null)
+const previewContent = ref('')
 const formRef = ref(null)
 
 // Form data
@@ -533,8 +546,19 @@ const handleRefresh = async () => {
   }
 }
 
-const previewDocumentHandler = (document) => {
+const previewDocumentHandler = async (document) => {
   previewDocument.value = document
+  previewContent.value = ''
+
+  try {
+    // 매뉴얼 내용 불러오기
+    await manualContentStore.fetchContent('P1', document.id)
+    previewContent.value = manualContentStore.currentContent?.contentBody || ''
+  } catch (error) {
+    console.error('매뉴얼 내용 불러오기 실패:', error)
+    previewContent.value = ''
+  }
+
   showPreviewModal.value = true
 }
 
