@@ -26,8 +26,8 @@
         <div class="flex gap-2">
           <n-select
             v-model:value="filterCategory"
-            :options="categoryOptions"
-            placeholder="카테고리 필터"
+            :options="categorySelectOptions"
+            placeholder="메뉴 필터"
             class="w-40"
             clearable
             @update:value="handleFilter"
@@ -97,7 +97,7 @@
       <div class="px-4 py-5 sm:p-6">
         <n-data-table
           :columns="columns"
-          :data="utilStore.flatCategoriesWithMenuTitle"
+          :data="filteredCategories"
           :loading="categoryStore.isLoading"
           :pagination="paginationConfig"
           :row-key="(row) => row.id"
@@ -376,13 +376,16 @@ const categoryOptions = computed(() => {
 })
 
 const categorySelectOptions = computed(() => {
-  if (!portalMenuStore.banners || portalMenuStore.banners.length === 0) {
-    return []
+  const options = [{ label: '전체', value: '' }]
+  if (portalMenuStore.banners && portalMenuStore.banners.length > 0) {
+    portalMenuStore.banners.forEach(menu => {
+      options.push({
+        label: menu.title,
+        value: menu.title
+      })
+    })
   }
-  return portalMenuStore.banners.map(menu => ({
-    label: menu.title,
-    value: menu.id.toString()
-  }))
+  return options
 })
 
 // Table configuration
@@ -494,15 +497,27 @@ const paginationConfig = {
 }
 
 // Computed properties
-const filteredDocuments = computed(() => {
-  let documents = documentStore.documents
+const filteredCategories = computed(() => {
+  let categories = utilStore.flatCategoriesWithMenuTitle || []
+
+  // 메뉴 필터
   if (filterCategory.value) {
-    documents = documentStore.getDocumentsByCategory(filterCategory.value)
+    categories = categories.filter(category =>
+      category.menuTitle && category.menuTitle.includes(filterCategory.value)
+    )
   }
+
+  // 검색 필터
   if (searchQuery.value) {
-    documents = documentStore.searchDocuments(searchQuery.value)
+    const query = searchQuery.value.toLowerCase().trim()
+    categories = categories.filter(category =>
+      (category.name && category.name.toLowerCase().includes(query)) ||
+      (category.description && category.description.toLowerCase().includes(query)) ||
+      (category.menuTitle && category.menuTitle.toLowerCase().includes(query))
+    )
   }
-  return documents
+
+  return categories
 })
 
 // Methods
