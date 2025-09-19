@@ -43,12 +43,12 @@
       </div>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
       <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
         <div class="flex items-center">
           <div class="flex-1">
             <p class="text-sm font-medium text-gray-600">총 매뉴얼 수</p>
-            <p class="text-2xl font-bold text-gray-900">{{ categoryStore.categories.length }}</p>
+            <p class="text-2xl font-bold text-gray-900">{{ totalDocumentCount }}</p>
           </div>
           <n-icon size="24" color="#6366f1">
             <DocumentTextOutline />
@@ -56,38 +56,18 @@
         </div>
       </div>
 
-      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+      <div
+        v-for="(menu, index) in topMenus"
+        :key="menu.section"
+        class="bg-white rounded-lg shadow-sm border border-gray-200 p-4"
+      >
         <div class="flex items-center">
           <div class="flex-1">
-            <p class="text-sm font-medium text-gray-600">기술 문서</p>
-            <p class="text-2xl font-bold text-green-600">{{ getCategoryCount('technology') }}</p>
+            <p class="text-sm font-medium text-gray-600">{{ menu.title }}</p>
+            <p class="text-2xl font-bold" :class="getMenuColorClass(index)">{{ getMenuDocumentCount(menu.section) }}</p>
           </div>
-          <n-icon size="24" color="#10b981">
-            <CodeOutline />
-          </n-icon>
-        </div>
-      </div>
-
-      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-        <div class="flex items-center">
-          <div class="flex-1">
-            <p class="text-sm font-medium text-gray-600">데이터베이스</p>
-            <p class="text-2xl font-bold text-blue-600">{{ getCategoryCount('database') }}</p>
-          </div>
-          <n-icon size="24" color="#3b82f6">
-            <ServerOutline />
-          </n-icon>
-        </div>
-      </div>
-
-      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-        <div class="flex items-center">
-          <div class="flex-1">
-            <p class="text-sm font-medium text-gray-600">AI 문서</p>
-            <p class="text-2xl font-bold text-yellow-600">{{ getCategoryCount('ai') }}</p>
-          </div>
-          <n-icon size="24" color="#f59e0b">
-            <IdCardOutline />
+          <n-icon size="24" :color="getMenuColor(index)">
+            <DocumentTextOutline />
           </n-icon>
         </div>
       </div>
@@ -646,6 +626,48 @@ const closeModal = () => {
     category: ''
   }
   formRef.value?.restoreValidation()
+}
+
+// 모든 메뉴 가져오기 (최대 8개까지)
+const topMenus = computed(() => {
+  console.log('portalMenuStore.banners:', portalMenuStore.banners)
+  return portalMenuStore.banners || []
+})
+
+// 총 문서 개수
+const totalDocumentCount = computed(() => {
+  console.log('utilStore.flatCategoriesWithMenuTitle:', utilStore.flatCategoriesWithMenuTitle)
+  return utilStore.flatCategoriesWithMenuTitle ? utilStore.flatCategoriesWithMenuTitle.length : 0
+})
+
+// 메뉴별 문서 개수 가져오기
+const getMenuDocumentCount = (section) => {
+  if (!utilStore.flatCategoriesWithMenuTitle) return 0
+  // section을 title로 변환해서 매칭
+  const menu = portalMenuStore.banners.find(m => m.section === section)
+  if (!menu) {
+    console.log('메뉴를 찾을 수 없음:', section)
+    return 0
+  }
+
+  const count = utilStore.flatCategoriesWithMenuTitle.filter(category =>
+    category.menuTitle === menu.title
+  ).length
+
+  console.log(`${menu.title} (${section}) 문서 개수:`, count)
+  return count
+}
+
+// 메뉴별 색상 클래스
+const getMenuColorClass = (index) => {
+  const colors = ['text-green-600', 'text-blue-600', 'text-yellow-600']
+  return colors[index] || 'text-gray-600'
+}
+
+// 메뉴별 아이콘 색상
+const getMenuColor = (index) => {
+  const colors = ['#10b981', '#3b82f6', '#f59e0b']
+  return colors[index] || '#6366f1'
 }
 
 const getCategoryCount = (category) => {
