@@ -449,25 +449,14 @@ const columns = [
   {
     title: '작업',
     key: 'actions',
-    width: 220,
+    width: 180,
     align: 'center',
     render: (row) => [
       h(NButton, {
         size: 'small',
         quaternary: true,
-        type: 'success',
-        onClick: () => openCreateModal(row), // [수정됨] 행 정보를 전달하여 '추가' 모달 열기
-        style: { marginRight: '4px' }
-      }, {
-        icon: () => h(NIcon, null, { default: () => h(AddOutline) }),
-        default: () => '추가'
-      }),
-      h(NButton, {
-        size: 'small',
-        quaternary: true,
         type: 'info',
-        onClick: () => previewDocumentHandler(row),
-        style: { marginLeft: '4px' }
+        onClick: () => previewDocumentHandler(row)
       }, {
         icon: () => h(NIcon, null, { default: () => h(EyeOutline) }),
         default: () => '보기'
@@ -476,7 +465,7 @@ const columns = [
         size: 'small',
         quaternary: true,
         type: 'primary',
-        onClick: () => editDocument(row), // [수정됨] 행 정보를 전달하여 '수정' 모달 열기
+        onClick: () => editDocument(row),
         style: { marginLeft: '4px' }
       }, {
         icon: () => h(NIcon, null, { default: () => h(CreateOutline) }),
