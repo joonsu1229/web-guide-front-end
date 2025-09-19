@@ -24,11 +24,11 @@ export const usePortalMenuStore = defineStore('portalMenu', () => {
         tagsArray = menu.tags.map(tag => tag.trim())
       }
 
-  return {
-    ...menu,
-    tags: tagsArray
-  }
-})
+    return {
+      ...menu,
+      tags: tagsArray
+    }
+  })
 
       banners.value = transformedData
     } catch (err) {
