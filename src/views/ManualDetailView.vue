@@ -38,7 +38,8 @@ export default {
     ManualContent
   },
   props: {
-    section: { type: String, required: true }
+    section: { type: String, required: true },
+    categoryId: { type: String, default: null }
   },
   data() {
     return {
@@ -85,6 +86,15 @@ export default {
     section: {
         handler() {
             this.activeItemId = null;
+        },
+        immediate: true
+    },
+    // categoryId prop이 있을 때 해당 카테고리를 활성화
+    categoryId: {
+        handler(newCategoryId) {
+            if (newCategoryId) {
+                this.activeItemId = newCategoryId;
+            }
         },
         immediate: true
     }

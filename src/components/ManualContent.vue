@@ -13,7 +13,18 @@
           <div v-if="loading" class="status-message">본문 로딩 중...</div>
           <div v-else-if="error" class="status-message error">{{ error }}</div>
           <section v-else-if="currentContent" class="content-section">
-            <h1>{{ activeItem.name }}</h1>
+            <div class="content-header">
+              <h1>{{ activeItem.name }}</h1>
+              <button
+                class="copy-link-btn"
+                @click="copyCurrentUrl"
+                :title="getTooltipMessage"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </button>
+            </div>
             <div class="content-body" v-html="renderedContentBody"></div>
           </section>
           <div v-else class="status-message">
@@ -61,7 +72,8 @@ export default {
   data() {
     return {
       tocItems: [],
-      activeAnchor: ''
+      activeAnchor: '',
+      copyMessage: '링크 복사'
     }
   },
   computed: {
@@ -72,13 +84,23 @@ export default {
       if (!content) {
         return '';
       }
-      
+
       // 1. API를 거치며 텍스트가 된 '\\n'을 실제 줄바꿈 문자로 변환
       const unescapedString = content.replace(/\\n/g, '\n');
-      
+
       // 2. marked 라이브러리로 마크다운을 HTML로 변환
       // { breaks: true } 옵션은 단순 줄바꿈(\n)을 <br> 태그
       return marked.parse(unescapedString, { breaks: true });
+    },
+
+    getTooltipMessage() {
+      if (this.copyMessage === '복사됨!') {
+        return '링크가 클립보드에 복사되었습니다!';
+      } else if (this.copyMessage === '복사 실패') {
+        return '링크 복사에 실패했습니다. 다시 시도해주세요.';
+      } else {
+        return '이 매뉴얼의 링크를 복사하여 다른 사람과 공유하세요';
+      }
     }
   },
 
@@ -119,6 +141,33 @@ export default {
         }
       }
       this.activeAnchor = currentActiveId;
+    },
+    async copyCurrentUrl() {
+      try {
+        // 현재 라우트에서 section을 가져오기
+        const currentSection = this.$route.params.section;
+        const categoryId = this.activeItem?.id;
+
+        // categoryId가 있으면 해당 카테고리로 직접 이동할 수 있는 URL 생성
+        let shareUrl;
+        if (categoryId && currentSection) {
+          shareUrl = `${window.location.origin}/guide/${currentSection}/${categoryId}`;
+        } else {
+          shareUrl = window.location.href;
+        }
+
+        await navigator.clipboard.writeText(shareUrl);
+        this.copyMessage = '복사됨!';
+        setTimeout(() => {
+          this.copyMessage = '링크 복사';
+        }, 2000);
+      } catch (err) {
+        console.error('클립보드 복사 실패:', err);
+        this.copyMessage = '복사 실패';
+        setTimeout(() => {
+          this.copyMessage = '링크 복사';
+        }, 2000);
+      }
     }
   },
   watch: {
@@ -183,13 +232,48 @@ export default {
   border: 1px solid var(--border-color);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
 }
-.content-section > h1 {
+.content-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.content-section h1 {
   font-size: 24px;
   font-weight: 700;
   line-height: 1.3;
-  margin-bottom: 10px;
+  margin: 0;
   letter-spacing: -0.5px;
   color: var(--text-color);
+  flex: 1;
+}
+
+.copy-link-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  color: #495057;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.copy-link-btn:hover {
+  background: #e9ecef;
+  color: #1976d2;
+  border-color: #1976d2;
+  transform: scale(1.05);
+}
+
+.copy-link-btn:active {
+  transform: scale(0.95);
 }
 .content-section-description {
   font-size: 16px;
