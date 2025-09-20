@@ -99,15 +99,7 @@
         </main>
 
         <!-- Footer -->
-        <footer class="footer-container" :class="{ 'dark-mode': isDarkMode }">
-          <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div class="flex flex-col md:flex-row justify-between items-center">
-              <div class="text-sm text-gray-500">
-                © 2025 워크쓰루 매뉴얼 / 문의 : 1566-4014
-              </div>
-            </div>
-          </div>
-        </footer>
+        <AppFooter />
       </div>
     </n-message-provider>
   </n-config-provider>
@@ -124,6 +116,7 @@ import {
   CloseOutline
 } from '@vicons/ionicons5'
 import DarkModeToggle from '@/components/DarkModeToggle.vue'
+import AppFooter from '@/components/AppFooter.vue'
 
 const router = useRouter()
 const theme = ref(null)
@@ -199,18 +192,6 @@ const goHome = () => {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
-/* Footer Styles */
-.footer-container {
-  background-color: var(--card-bg);
-  border-top: 1px solid var(--border-color);
-  margin-top: 3rem;
-  transition: all 0.3s ease;
-}
-
-.footer-container.dark-mode {
-  background-color: #2d3748;
-  border-top-color: #4a5568;
-}
 
 /* Navigation Styles */
 .nav-link {
@@ -305,10 +286,6 @@ const goHome = () => {
   background-color: #2d3748;
 }
 
-/* Footer Text Styles */
-.dark-mode .text-gray-500 {
-  color: #9ca3af;
-}
 
 /* Page Transition Styles */
 .page-slide-enter-active {
