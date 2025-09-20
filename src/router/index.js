@@ -17,10 +17,16 @@ const routes = [
     }
   },
   {
-    path: '/guide/:section', 
+    path: '/guide/:section',
     name: 'ManualDetail',
     component: ManualDetailView,
-    props: true 
+    props: true
+  },
+  {
+    path: '/guide/:section/:categoryId',
+    name: 'ManualDetailWithCategory',
+    component: ManualDetailView,
+    props: true
   },  
   {
     path: '/JobManagement',
