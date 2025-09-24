@@ -29,7 +29,7 @@ export const useSearchStore = defineStore('search', () => {
   })
 
   // Computed
-  const hasResults = computed(() => searchResults.value.length > 0)
+  const hasResults = computed(() => searchResults.value && searchResults.value.length > 0)
   const isLoading = computed(() => loading.value)
   const hasError = computed(() => error.value !== null)
 
@@ -43,6 +43,7 @@ export const useSearchStore = defineStore('search', () => {
 
   // Actions
   const performSearch = async (query, type = 'hybrid') => {
+    console.log(`[Search Store] 검색 시작. Query: "${query}"`);
     if (!query.trim()) return
 
     loading.value = true
@@ -53,51 +54,32 @@ export const useSearchStore = defineStore('search', () => {
     const startTime = Date.now()
 
     try {
-      let results = []
+      console.log('[Search Store] API를 호출합니다 (searchAPI.hybridSearch)');
+      const results = await searchAPI.hybridSearch(query, selectedCategory.value, searchOptions.value.limit)
       
-      switch (type) {
-        case 'hybrid':
-          results = await searchAPI.hybridSearch(query, selectedCategory.value, searchOptions.value.limit)
-          break
-        case 'lexical':
-          results = await searchAPI.lexicalSearch(query, selectedCategory.value, searchOptions.value.limit)
-          break
-        case 'semantic':
-          results = await searchAPI.semanticSearch(query, selectedCategory.value, searchOptions.value.limit)
-          break          
-        case 'advanced':
-          results = await searchAPI.advancedSearch(
-            query, 
-            selectedCategory.value, 
-            searchOptions.value.useFuzzy,
-            searchOptions.value.usePhrase,
-            searchOptions.value.limit
-          )
-          break
-        case 'boolean':
-          results = await searchAPI.booleanSearch({
-            ...booleanOptions.value,
-            category: selectedCategory.value,
-            limit: searchOptions.value.limit
-          })
-          break
-        default:
-          results = await searchAPI.hybridSearch(query, selectedCategory.value, searchOptions.value.limit)
+      console.log('[Search Store] API가 반환한 원본 결과:', results);
+
+      // API 결과가 유효한 배열인지 확인
+      if (Array.isArray(results)) {
+        searchResults.value = results
+        totalResults.value = results.length
+        console.log(`[Search Store] 검색 완료. 상태에 결과 ${results.length}개를 저장했습니다.`);
+      } else {
+        console.error('[Search Store] 에러: API 결과가 배열이 아닙니다.', results);
+        throw new Error('검색 결과 형식이 올바르지 않습니다.');
       }
 
-      searchResults.value = results
-      totalResults.value = results.length
       searchTime.value = Date.now() - startTime
-
-      // Add to search history
       addToHistory(query, type)
 
     } catch (err) {
+      console.error('[Search Store] 검색 작업 중 에러가 발생했습니다:', err);
       error.value = err.message || '검색 중 오류가 발생했습니다.'
       searchResults.value = []
       totalResults.value = 0
     } finally {
       loading.value = false
+      console.log('[Search Store] 검색 프로세스를 종료합니다.');
     }
   }
 
@@ -129,16 +111,10 @@ export const useSearchStore = defineStore('search', () => {
       timestamp: new Date(),
       results: totalResults.value
     }
-
-    // Remove duplicate
     searchHistory.value = searchHistory.value.filter(item => 
       !(item.query === query && item.type === type && item.category === selectedCategory.value)
     )
-
-    // Add to beginning
     searchHistory.value.unshift(historyItem)
-
-    // Keep only last 20 items
     if (searchHistory.value.length > 20) {
       searchHistory.value = searchHistory.value.slice(0, 20)
     }
@@ -150,6 +126,7 @@ export const useSearchStore = defineStore('search', () => {
     error.value = null
     totalResults.value = 0
     searchTime.value = 0
+    console.log('[Search Store] 검색 결과를 초기화했습니다.');
   }
 
   const clearHistory = () => {
@@ -170,39 +147,14 @@ export const useSearchStore = defineStore('search', () => {
 
   const highlightText = (text, query) => {
     if (!query || !text) return text
-    
     const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi')
     return text.replace(regex, '<span class="search-highlight">$1</span>')
   }
 
   return {
-    // State
-    searchResults,
-    loading,
-    error,
-    currentQuery,
-    searchType,
-    selectedCategory,
-    searchHistory,
-    totalResults,
-    searchTime,
-    searchOptions,
-    booleanOptions,
-    categories,
-    
-    // Computed
-    hasResults,
-    isLoading,
-    hasError,
-    
-    // Actions
-    performSearch,
-    searchByCategory,
-    clearResults,
-    clearHistory,
-    setCategory,
-    setSearchOptions,
-    setBooleanOptions,
-    highlightText
+    searchResults, loading, error, currentQuery, searchType, selectedCategory, searchHistory,
+    totalResults, searchTime, searchOptions, booleanOptions, categories, hasResults, isLoading,
+    hasError, performSearch, searchByCategory, clearResults, clearHistory, setCategory,
+    setSearchOptions, setBooleanOptions, highlightText
   }
 })
