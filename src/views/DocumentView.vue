@@ -585,6 +585,8 @@ const handleSubmit = async () => {
 
     const sendData = {
       categoryId : formData.value.category,
+      menu: formData.value.menu,
+      title: formData.value.title,
       portalId: "P1",
       contentBody: formData.value.content
     }
