@@ -38,15 +38,6 @@ const routes = [
     }
   },
   {
-    path: '/search',
-    name: 'Search',
-    component: SearchView,
-    meta: {
-      title: '검색',
-      icon: 'search'
-    }
-  },
-  {
     path: '/documents',
     name: 'Documents',
     component: DocumentView,
