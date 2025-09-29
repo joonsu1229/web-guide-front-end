@@ -47,8 +47,27 @@
             class="result-card"
           >
             <div class="result-header">
-              <n-tag type="success" size="tiny" round>{{ index + 1 }}</n-tag>
-              <span class="result-score">일치도: {{ Math.round(result.score * 100) }}%</span>
+              <div class="result-info">
+                <n-tag type="success" size="tiny" round>{{ index + 1 }}</n-tag>
+                <span class="result-score">일치도: {{ Math.round(result.score * 100) }}%</span>
+              </div>
+              <n-button
+                size="small"
+                type="primary"
+                ghost
+                round
+                @click="navigateToDocument(result.document)"
+                class="navigate-button"
+              >
+                <template #icon>
+                  <n-icon>
+                    <svg viewBox="0 0 24 24" fill="none">
+                      <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                  </n-icon>
+                </template>
+                문서 보기
+              </n-button>
             </div>
             <div class="result-content" v-html="renderMarkdown(result.document.contentBody)"></div>
           </div>
@@ -87,19 +106,21 @@
 
 <script setup>
 import { ref } from 'vue';
+import { useRouter } from 'vue-router';
 import { useSearchStore } from '@/stores/searchStore';
 import { storeToRefs } from 'pinia';
 import { NDrawer, NDrawerContent, NButton, NSpin, NEmpty, NInput, NInputGroup, NIcon, NTag } from 'naive-ui';
 
 const searchStore = useSearchStore();
 const { hasResults, searchResults, isLoading, currentQuery } = storeToRefs(searchStore);
+const router = useRouter();
 
 const searchQuery = ref('');
 const showDrawer = ref(false);
 
 const handleSearch = async () => {
   if (!searchQuery.value.trim() || isLoading.value) return;
-  
+
   // 검색을 실행합니다. `isLoading` 상태가 true로 변경됩니다.
   await searchStore.performSearch(searchQuery.value);
 
@@ -108,6 +129,32 @@ const handleSearch = async () => {
 };
 
 const closeDrawer = () => {
+  showDrawer.value = false;
+};
+
+const navigateToDocument = async (document) => {
+  console.log('검색 결과 문서 객체:', document);
+
+  // 먼저 document 객체에서 categoryId가 직접 있는지 확인
+  const categoryId = document.categoryId || document.category_id;
+  const contentId = document.id;
+
+  if (categoryId) {
+    // categoryId가 있으면 바로 이동
+    console.log(`카테고리 ID ${categoryId}로 바로 이동`);
+    router.push(`/guide/P1/${categoryId}`);
+    showDrawer.value = false;
+    return;
+  }
+
+  if (!contentId) {
+    console.error('문서 ID를 찾을 수 없습니다:', document);
+    return;
+  }
+
+  // API 없이 contentId를 categoryId로 사용해서 시도 (fallback)
+  console.log(`콘텐츠 ID ${contentId}를 카테고리 ID로 사용하여 이동 시도`);
+  router.push(`/guide/P1/${contentId}`);
   showDrawer.value = false;
 };
 
@@ -147,6 +194,7 @@ const renderMarkdown = (text) => {
     return section.trim() ? `<p>${section.replace(/\n/g, '<br>')}</p>` : '';
   }).filter(p => p).join('');
 };
+
 </script>
 
 <style scoped>
@@ -241,6 +289,16 @@ const renderMarkdown = (text) => {
   border-bottom: 1px solid #e8e8e8;
 }
 
+.result-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.navigate-button {
+  flex-shrink: 0;
+}
+
 .result-score {
   font-size: 12px;
   color: #666;
@@ -330,4 +388,5 @@ const renderMarkdown = (text) => {
   font-size: 0.85em;
   line-height: 1.4;
 }
+
 </style>

@@ -65,6 +65,7 @@ export default {
     }
   },
   methods: {
+    ...mapActions(useCategoryStore, ['fetchCategoryTree']),
     ...mapActions(useManualContentStore, ['fetchContent']),
     handleItemSelect(itemId) {
       this.activeItemId = itemId;
@@ -98,6 +99,10 @@ export default {
         },
         immediate: true
     }
+  },
+  async created() {
+    // 컴포넌트가 생성될 때 카테고리 트리를 먼저 로드
+    await this.fetchCategoryTree('P1', this.section);
   }
 }
 </script>
