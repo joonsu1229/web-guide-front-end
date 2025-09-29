@@ -15,15 +15,34 @@
           <section v-else-if="currentContent" class="content-section">
             <div class="content-header">
               <h1>{{ activeItem.name }}</h1>
-              <button
-                class="copy-link-btn"
-                @click="copyCurrentUrl"
-                :title="getTooltipMessage"
-              >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-              </button>
+              <div class="header-actions">
+                <button
+                  class="bookmark-btn"
+                  @click="toggleBookmark"
+                  :class="{ 'bookmarked': isCurrentBookmarked }"
+                  :title="isCurrentBookmarked ? '북마크에서 제거' : '북마크에 추가'"
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                      d="M19 21L12 16L5 21V5a2 2 0 012-2h10a2 2 0 012 2v16z"
+                      :stroke="isCurrentBookmarked ? 'none' : 'currentColor'"
+                      :fill="isCurrentBookmarked ? 'currentColor' : 'none'"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
+                </button>
+                <button
+                  class="copy-link-btn"
+                  @click="copyCurrentUrl"
+                  :title="getTooltipMessage"
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </button>
+              </div>
             </div>
             <div class="content-body" v-html="renderedContentBody"></div>
           </section>
@@ -62,6 +81,7 @@
 <script>
 import { mapState } from 'pinia'
 import { useManualContentStore } from '@/stores/useManualContentStore'
+import { useBookmarkStore } from '@/stores/bookmarkStore'
 import { marked } from 'marked'; // marked 라이브러리 import 예시
 
 export default {
@@ -78,6 +98,14 @@ export default {
   },
   computed: {
     ...mapState(useManualContentStore, ['currentContent', 'loading', 'error']),
+
+    bookmarkStore() {
+      return useBookmarkStore()
+    },
+
+    isCurrentBookmarked() {
+      return this.activeItem ? this.bookmarkStore.isBookmarked(this.activeItem.id) : false
+    },
 
     renderedContentBody() {
       const content = this.currentContent?.contentBody;
@@ -168,6 +196,28 @@ export default {
           this.copyMessage = '링크 복사';
         }, 2000);
       }
+    },
+
+    toggleBookmark() {
+      if (!this.activeItem) return;
+
+      const item = {
+        id: this.activeItem.id,
+        name: this.activeItem.name,
+        parentName: this.activeItem.parentName,
+        section: this.$route.params.section || 'P1',
+        description: this.currentContent?.contentBody?.substring(0, 100) || ''
+      };
+
+      const wasBookmarked = this.isCurrentBookmarked;
+      const success = this.bookmarkStore.toggleBookmark(item);
+
+      if (success) {
+        // 토스트 메시지나 알림으로 피드백 제공
+        const message = wasBookmarked ? '북마크에서 제거되었습니다.' : '북마크에 추가되었습니다.';
+        console.log(message);
+        // TODO: 실제 토스트 알림으로 교체
+      }
     }
   },
   watch: {
@@ -235,8 +285,14 @@ export default {
 .content-header {
   display: flex;
   align-items: center;
-  gap: 12px;
+  justify-content: space-between;
   margin-bottom: 10px;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .content-section h1 {
@@ -273,6 +329,45 @@ export default {
 }
 
 .copy-link-btn:active {
+  transform: scale(0.95);
+}
+
+.bookmark-btn {
+  background: #ffffff;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #6c757d;
+  padding: 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.bookmark-btn:hover {
+  background: #e9ecef;
+  color: #ffc107;
+  border-color: #ffc107;
+  transform: scale(1.05);
+}
+
+.bookmark-btn.bookmarked {
+  background: #fff3cd;
+  color: #ffc107;
+  border-color: #ffc107;
+}
+
+.bookmark-btn.bookmarked:hover {
+  background: #ffeaa7;
+  color: #b8860b;
+  border-color: #b8860b;
+}
+
+.bookmark-btn:active {
   transform: scale(0.95);
 }
 .content-section-description {
