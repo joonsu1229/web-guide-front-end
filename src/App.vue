@@ -113,7 +113,10 @@ import {
   DocumentTextOutline,
   BarChartOutline,
   MenuOutline,
-  CloseOutline
+  CloseOutline,
+  BookOutline,
+  SettingsOutline,
+  StatsChartOutline
 } from '@vicons/ionicons5'
 import DarkModeToggle from '@/components/DarkModeToggle.vue'
 import AppFooter from '@/components/AppFooter.vue'
@@ -134,16 +137,17 @@ onMounted(() => {
 })
 
 const routes = computed(() =>
-  router.getRoutes().filter(route => route.meta?.title)
+  router.getRoutes().filter(route => route.meta?.title && !route.meta?.hidden)
 )
 
 const getIcon = (iconName) => {
   const icons = {
     search: SearchOutline,
-    document: DocumentTextOutline,
-    analytics: BarChartOutline
+    document: BookOutline,
+    analytics: StatsChartOutline,
+    management: SettingsOutline
   }
-  return icons[iconName] || SearchOutline
+  return icons[iconName] || BookOutline
 }
 
 const toggleDarkMode = () => {

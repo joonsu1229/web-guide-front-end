@@ -34,7 +34,8 @@ const routes = [
     component: JobManagement,
     meta: {
       title: '채용정보 관리',
-      icon: 'document'
+      icon: 'document',
+      hidden: true  // 메뉴에서 숨김
     }
   },
   {
@@ -43,7 +44,7 @@ const routes = [
     component: DocumentView,
     meta: {
       title: '매뉴얼 관리',
-      icon: 'document'
+      icon: 'management'
     }
   },
   {
