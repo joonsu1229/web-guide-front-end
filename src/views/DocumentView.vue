@@ -44,42 +44,108 @@
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-      <div class="rounded-lg shadow-sm border p-4" :class="isDark ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-200'">
-        <div class="flex items-center">
-          <div class="flex-1">
-            <p class="text-sm font-medium" :class="isDark ? 'text-gray-300' : 'text-gray-600'">총 매뉴얼 수</p>
-            <p class="text-2xl font-bold" :class="isDark ? 'text-white' : 'text-gray-900'">{{ totalDocumentCount }}</p>
+      <!-- 로딩 상태일 때 스켈레톤 카드들 -->
+      <template v-if="portalMenuStore.isLoading || utilStore.isLoading">
+        <div v-for="i in 5" :key="i" class="rounded-lg shadow-sm border p-4 animate-pulse" :class="isDark ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-200'">
+          <div class="flex items-center">
+            <div class="flex-1 space-y-2">
+              <n-skeleton height="14px" width="70%" />
+              <n-skeleton height="32px" width="50%" />
+            </div>
+            <n-skeleton height="24px" width="24px" circle />
           </div>
-          <n-icon size="24" color="#6366f1">
-            <DocumentTextOutline />
-          </n-icon>
         </div>
-      </div>
+      </template>
 
-      <div
-        v-for="(menu, index) in topMenus"
-        :key="menu.section"
-        class="rounded-lg shadow-sm border p-4"
-        :class="isDark ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-200'"
-      >
-        <div class="flex items-center">
-          <div class="flex-1">
-            <p class="text-sm font-medium" :class="isDark ? 'text-gray-300' : 'text-gray-600'">{{ menu.title }}</p>
-            <p class="text-2xl font-bold" :class="getMenuColorClass(index)">{{ getMenuDocumentCount(menu.section) }}</p>
+      <!-- 실제 데이터 카드들 -->
+      <template v-else>
+        <div class="rounded-lg shadow-sm border p-4" :class="isDark ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-200'">
+          <div class="flex items-center">
+            <div class="flex-1">
+              <p class="text-sm font-medium" :class="isDark ? 'text-gray-300' : 'text-gray-600'">총 매뉴얼 수</p>
+              <p class="text-2xl font-bold" :class="isDark ? 'text-white' : 'text-gray-900'">{{ totalDocumentCount }}</p>
+            </div>
+            <n-icon size="24" color="#6366f1">
+              <DocumentTextOutline />
+            </n-icon>
           </div>
-          <n-icon size="24" :color="getMenuColor(index)">
-            <DocumentTextOutline />
-          </n-icon>
         </div>
-      </div>
+
+        <div
+          v-for="(menu, index) in topMenus"
+          :key="menu.section"
+          class="rounded-lg shadow-sm border p-4"
+          :class="isDark ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-200'"
+        >
+          <div class="flex items-center">
+            <div class="flex-1">
+              <p class="text-sm font-medium" :class="isDark ? 'text-gray-300' : 'text-gray-600'">{{ menu.title }}</p>
+              <p class="text-2xl font-bold" :class="getMenuColorClass(index)">{{ getMenuDocumentCount(menu.section) }}</p>
+            </div>
+            <n-icon size="24" :color="getMenuColor(index)">
+              <DocumentTextOutline />
+            </n-icon>
+          </div>
+        </div>
+      </template>
     </div>
 
     <div class="rounded-lg shadow-sm border" :class="isDark ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-200'">
       <div class="px-4 py-5 sm:p-6">
+        <!-- 커스텀 로딩 상태 -->
+        <div v-if="categoryStore.isLoading || utilStore.isLoading" class="space-y-6">
+          <!-- 로딩 헤더 -->
+          <div class="text-center py-8">
+            <div class="inline-flex flex-col items-center gap-4">
+              <div class="relative">
+                <div class="w-12 h-12 border-3 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
+                <div class="absolute inset-0 flex items-center justify-center">
+                  <n-icon :size="20" color="#4f46e5" class="animate-pulse">
+                    <DocumentTextOutline />
+                  </n-icon>
+                </div>
+              </div>
+              <div class="space-y-1">
+                <p class="text-base font-medium" :class="isDark ? 'text-gray-200' : 'text-gray-700'">매뉴얼 데이터 로딩 중...</p>
+                <p class="text-sm" :class="isDark ? 'text-gray-400' : 'text-gray-500'">잠시만 기다려주세요</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- 테이블 스켈레톤 -->
+          <div class="space-y-4">
+            <!-- 테이블 헤더 스켈레톤 -->
+            <div class="grid grid-cols-6 gap-4 p-4 rounded-lg" :class="isDark ? 'bg-gray-700' : 'bg-gray-50'">
+              <n-skeleton height="20px" width="60px" />
+              <n-skeleton height="20px" width="80px" />
+              <n-skeleton height="20px" width="100px" />
+              <n-skeleton height="20px" width="120px" />
+              <n-skeleton height="20px" width="60px" />
+              <n-skeleton height="20px" width="80px" />
+            </div>
+
+            <!-- 테이블 행 스켈레톤 -->
+            <div v-for="i in 5" :key="i" class="grid grid-cols-6 gap-4 p-4 border-t animate-pulse" :class="isDark ? 'border-gray-600' : 'border-gray-200'">
+              <n-skeleton height="16px" width="40px" />
+              <n-skeleton height="16px" width="60px" />
+              <n-skeleton height="16px" width="90%" />
+              <n-skeleton height="16px" width="80%" />
+              <n-skeleton height="20px" width="60px" round />
+              <div class="flex gap-2">
+                <n-skeleton height="28px" width="50px" />
+                <n-skeleton height="28px" width="50px" />
+                <n-skeleton height="28px" width="50px" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 실제 데이터 테이블 -->
         <n-data-table
+          v-else
           :columns="columns"
           :data="filteredCategories"
-          :loading="categoryStore.isLoading"
+          :loading="false"
           :pagination="paginationConfig"
           :row-key="(row) => row.id"
           size="medium"
