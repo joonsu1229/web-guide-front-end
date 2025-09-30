@@ -1,13 +1,13 @@
 <template>
-  <div class="space-y-6">
+  <div class="space-y-6" :class="{ 'dark-mode': isDark }">
     <div class="flex justify-between items-center">
       <div>
-        <h1 class="text-3xl font-bold text-gray-900">매뉴얼 관리</h1>
-        <p class="text-gray-600 mt-1">사용자 매뉴얼을 관리합니다</p>
+        <h1 class="text-3xl font-bold" :class="isDark ? 'text-white' : 'text-gray-900'">매뉴얼 관리</h1>
+        <p class="mt-1" :class="isDark ? 'text-gray-300' : 'text-gray-600'">사용자 매뉴얼을 관리합니다</p>
       </div>
     </div>
 
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+    <div class="rounded-lg shadow-sm border p-4" :class="isDark ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-200'">
       <div class="flex flex-col md:flex-row gap-4">
         <div class="flex-1">
           <n-input
@@ -44,11 +44,11 @@
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+      <div class="rounded-lg shadow-sm border p-4" :class="isDark ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-200'">
         <div class="flex items-center">
           <div class="flex-1">
-            <p class="text-sm font-medium text-gray-600">총 매뉴얼 수</p>
-            <p class="text-2xl font-bold text-gray-900">{{ totalDocumentCount }}</p>
+            <p class="text-sm font-medium" :class="isDark ? 'text-gray-300' : 'text-gray-600'">총 매뉴얼 수</p>
+            <p class="text-2xl font-bold" :class="isDark ? 'text-white' : 'text-gray-900'">{{ totalDocumentCount }}</p>
           </div>
           <n-icon size="24" color="#6366f1">
             <DocumentTextOutline />
@@ -59,11 +59,12 @@
       <div
         v-for="(menu, index) in topMenus"
         :key="menu.section"
-        class="bg-white rounded-lg shadow-sm border border-gray-200 p-4"
+        class="rounded-lg shadow-sm border p-4"
+        :class="isDark ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-200'"
       >
         <div class="flex items-center">
           <div class="flex-1">
-            <p class="text-sm font-medium text-gray-600">{{ menu.title }}</p>
+            <p class="text-sm font-medium" :class="isDark ? 'text-gray-300' : 'text-gray-600'">{{ menu.title }}</p>
             <p class="text-2xl font-bold" :class="getMenuColorClass(index)">{{ getMenuDocumentCount(menu.section) }}</p>
           </div>
           <n-icon size="24" :color="getMenuColor(index)">
@@ -73,7 +74,7 @@
       </div>
     </div>
 
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+    <div class="rounded-lg shadow-sm border" :class="isDark ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-200'">
       <div class="px-4 py-5 sm:p-6">
         <n-data-table
           :columns="columns"
@@ -83,6 +84,7 @@
           :row-key="(row) => row.id"
           size="medium"
           striped
+          :theme-overrides="isDark ? dataTableDarkTheme : {}"
         />
       </div>
     </div>
@@ -297,6 +299,14 @@ import {
   EyeOutline
 } from '@vicons/ionicons5'
 
+// Props
+const props = defineProps({
+  isDark: {
+    type: Boolean,
+    default: false
+  }
+})
+
 // 스토어 인스턴스 생성
 const message = useMessage()
 const documentStore = useDocumentStore()
@@ -339,6 +349,29 @@ const formData = ref({
   menu: '',
   category: ''
 })
+
+// 다크모드용 데이터 테이블 테마
+const dataTableDarkTheme = {
+  common: {
+    tableColor: '#2d3748',
+    tableColorHover: '#4a5568',
+    tableHeaderColor: '#1a202c',
+    textColor: '#e2e8f0',
+    textColorDisabled: '#a0aec0',
+    borderColor: '#4a5568'
+  },
+  DataTable: {
+    tdColor: '#2d3748',
+    tdColorHover: '#4a5568',
+    tdColorStriped: '#374151',
+    thColor: '#1a202c',
+    thColorHover: '#2d3748',
+    borderColor: '#4a5568',
+    textColor: '#e2e8f0',
+    thTextColor: '#f7fafc',
+    tdTextColor: '#e2e8f0'
+  }
+}
 
 // Form rules
 const formRules = {
@@ -810,5 +843,15 @@ onMounted(async () => {
 
 .markdown-preview :deep(a:hover) {
   text-decoration: underline;
+}
+
+/* 다크모드 스타일 */
+.dark-mode {
+  background-color: #1a1d21;
+  color: #e9ecef;
+}
+
+.dark-mode .space-y-6 {
+  background-color: #1a1d21;
 }
 </style>

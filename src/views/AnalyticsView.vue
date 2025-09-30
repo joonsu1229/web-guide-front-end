@@ -1,10 +1,10 @@
 <template>
-  <div class="space-y-6">
+  <div class="space-y-6" :class="{ 'dark-mode': isDark }">
     <!-- Page Header -->
     <div class="flex justify-between items-center">
       <div>
-        <h1 class="text-3xl font-bold text-gray-900">검색 분석</h1>
-        <p class="text-gray-600 mt-1">검색 패턴과 인기 쿼리를 분석합니다</p>
+        <h1 class="text-3xl font-bold" :class="isDark ? 'text-white' : 'text-gray-900'">검색 분석</h1>
+        <p class="mt-1" :class="isDark ? 'text-gray-300' : 'text-gray-600'">검색 패턴과 인기 쿼리를 분석합니다</p>
       </div>
       <n-button @click="refreshData" :loading="loading">
         <template #icon>
@@ -18,12 +18,12 @@
 
     <!-- Key Metrics -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div class="rounded-lg shadow-sm border p-6" :class="isDark ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-200'">
         <div class="flex items-center">
           <div class="flex-1">
-            <p class="text-sm font-medium text-gray-600">총 검색 횟수</p>
+            <p class="text-sm font-medium" :class="isDark ? 'text-gray-300' : 'text-gray-600'">총 검색 횟수</p>
             <p class="text-3xl font-bold text-blue-600">{{ totalSearches.toLocaleString() }}</p>
-            <p class="text-xs text-gray-500 mt-1">누적 검색 수</p>
+            <p class="text-xs mt-1" :class="isDark ? 'text-gray-400' : 'text-gray-500'">누적 검색 수</p>
           </div>
           <div class="p-3 bg-blue-100 rounded-lg">
             <n-icon size="24" color="#3b82f6">
@@ -33,12 +33,12 @@
         </div>
       </div>
 
-      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div class="rounded-lg shadow-sm border p-6" :class="isDark ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-200'">
         <div class="flex items-center">
           <div class="flex-1">
-            <p class="text-sm font-medium text-gray-600">인기 검색어</p>
+            <p class="text-sm font-medium" :class="isDark ? 'text-gray-300' : 'text-gray-600'">인기 검색어</p>
             <p class="text-3xl font-bold text-green-600">{{ Object.keys(popularQueries).length }}</p>
-            <p class="text-xs text-gray-500 mt-1">고유 검색어 수</p>
+            <p class="text-xs mt-1" :class="isDark ? 'text-gray-400' : 'text-gray-500'">고유 검색어 수</p>
           </div>
           <div class="p-3 bg-green-100 rounded-lg">
             <n-icon size="24" color="#10b981">
@@ -48,12 +48,12 @@
         </div>
       </div>
 
-      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div class="rounded-lg shadow-sm border p-6" :class="isDark ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-200'">
         <div class="flex items-center">
           <div class="flex-1">
-            <p class="text-sm font-medium text-gray-600">평균 검색 빈도</p>
+            <p class="text-sm font-medium" :class="isDark ? 'text-gray-300' : 'text-gray-600'">평균 검색 빈도</p>
             <p class="text-3xl font-bold text-purple-600">{{ avgSearchFrequency.toFixed(1) }}</p>
-            <p class="text-xs text-gray-500 mt-1">검색어당 평균</p>
+            <p class="text-xs mt-1" :class="isDark ? 'text-gray-400' : 'text-gray-500'">검색어당 평균</p>
           </div>
           <div class="p-3 bg-purple-100 rounded-lg">
             <n-icon size="24" color="#8b5cf6">
@@ -67,10 +67,10 @@
     <!-- Popular Queries Section -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <!-- Popular Queries List -->
-      <div class="bg-white rounded-lg shadow-sm border border-gray-200">
-        <div class="p-6 border-b border-gray-200">
+      <div class="rounded-lg shadow-sm border" :class="isDark ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-200'">
+        <div class="p-6 border-b" :class="isDark ? 'border-gray-600' : 'border-gray-200'">
           <div class="flex justify-between items-center">
-            <h2 class="text-lg font-semibold text-gray-900">인기 검색어 TOP 10</h2>
+            <h2 class="text-lg font-semibold" :class="isDark ? 'text-white' : 'text-gray-900'">인기 검색어 TOP 10</h2>
             <n-select
               v-model:value="queryLimit"
               :options="limitOptions"
@@ -140,9 +140,9 @@
       </div>
 
       <!-- Query Analytics Chart -->
-      <div class="bg-white rounded-lg shadow-sm border border-gray-200">
-        <div class="p-6 border-b border-gray-200">
-          <h2 class="text-lg font-semibold text-gray-900">검색 패턴 분석</h2>
+      <div class="rounded-lg shadow-sm border" :class="isDark ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-200'">
+        <div class="p-6 border-b" :class="isDark ? 'border-gray-600' : 'border-gray-200'">
+          <h2 class="text-lg font-semibold" :class="isDark ? 'text-white' : 'text-gray-900'">검색 패턴 분석</h2>
         </div>
         
         <div class="p-6">
@@ -173,9 +173,9 @@
     </div>
 
     <!-- Search History Analysis -->
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+    <div class="rounded-lg shadow-sm border" :class="isDark ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-200'">
       <div class="p-6 border-b border-gray-200">
-        <h2 class="text-lg font-semibold text-gray-900">최근 검색 활동</h2>
+        <h2 class="text-lg font-semibold" :class="isDark ? 'text-white' : 'text-gray-900'">최근 검색 활동</h2>
       </div>
       
       <div class="p-6">
@@ -264,9 +264,9 @@
     </div>
 
     <!-- Category Analysis -->
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+    <div class="rounded-lg shadow-sm border" :class="isDark ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-200'">
       <div class="p-6 border-b border-gray-200">
-        <h2 class="text-lg font-semibold text-gray-900">카테고리별 검색 분석</h2>
+        <h2 class="text-lg font-semibold" :class="isDark ? 'text-white' : 'text-gray-900'">카테고리별 검색 분석</h2>
       </div>
       
       <div class="p-6">
@@ -320,6 +320,14 @@ import {
   IdCardOutline,
   DocumentTextOutline
 } from '@vicons/ionicons5'
+
+// Props
+const props = defineProps({
+  isDark: {
+    type: Boolean,
+    default: false
+  }
+})
 
 const router = useRouter()
 const message = useMessage()
@@ -526,5 +534,15 @@ onMounted(() => {
 .chart-bar:hover {
   transform: translateY(-2px);
   filter: brightness(1.1);
+}
+
+/* 다크모드 스타일 */
+.dark-mode {
+  background-color: #1a1d21;
+  color: #e9ecef;
+}
+
+.dark-mode .space-y-6 {
+  background-color: #1a1d21;
 }
 </style>
