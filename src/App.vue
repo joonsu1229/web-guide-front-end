@@ -17,7 +17,7 @@
                 </div>
               </div>
 
-              <!-- Navigation and Dark Mode Toggle -->
+              <!-- Navigation and Controls -->
               <div class="flex items-center space-x-4">
                 <nav class="hidden md:flex space-x-8">
                   <router-link
@@ -33,6 +33,28 @@
                     {{ route.meta.title }}
                   </router-link>
                 </nav>
+
+                <!-- 북마크 드롭다운 -->
+                <n-dropdown :options="bookmarkDropdownOptions" @select="handleBookmarkSelect">
+                  <n-button
+                    quaternary
+                    circle
+                    :class="{ 'bookmark-active': bookmarkStore.bookmarkCount > 0 }"
+                    class="bookmark-dropdown-btn"
+                  >
+                    <template #icon>
+                      <n-icon :size="20">
+                        <BookmarkOutline />
+                      </n-icon>
+                    </template>
+                    <n-badge
+                      v-if="bookmarkStore.bookmarkCount > 0"
+                      :value="bookmarkStore.bookmarkCount"
+                      :max="99"
+                      class="bookmark-badge"
+                    />
+                  </n-button>
+                </n-dropdown>
 
                 <!-- Dark Mode Toggle -->
                 <DarkModeToggle
@@ -100,6 +122,17 @@
 
         <!-- Footer -->
         <AppFooter />
+
+        <!-- 북마크 모달 -->
+        <n-modal
+          v-model:show="showBookmarkModal"
+          :mask-closable="true"
+          preset="card"
+          title="북마크"
+          style="width: 90%; max-width: 900px; max-height: 80vh;"
+        >
+          <BookmarkList />
+        </n-modal>
       </div>
     </n-message-provider>
   </n-config-provider>
@@ -116,15 +149,20 @@ import {
   CloseOutline,
   BookOutline,
   SettingsOutline,
-  StatsChartOutline
+  StatsChartOutline,
+  BookmarkOutline
 } from '@vicons/ionicons5'
 import DarkModeToggle from '@/components/DarkModeToggle.vue'
 import AppFooter from '@/components/AppFooter.vue'
+import BookmarkList from '@/components/BookmarkList.vue'
+import { useBookmarkStore } from '@/stores/bookmarkStore'
 
 const router = useRouter()
+const bookmarkStore = useBookmarkStore()
 const theme = ref(null)
 const mobileMenuOpen = ref(false)
 const isDarkMode = ref(false)
+const showBookmarkModal = ref(false)
 
 onMounted(() => {
   const savedDarkMode = localStorage.getItem('darkMode')
@@ -166,6 +204,51 @@ const applyDarkMode = () => {
 
 const goHome = () => {
   router.push('/')
+}
+
+const bookmarkDropdownOptions = computed(() => {
+  const options = []
+
+  if (bookmarkStore.bookmarkCount === 0) {
+    options.push({
+      label: '저장된 북마크가 없습니다',
+      key: 'empty',
+      disabled: true
+    })
+  } else {
+    // 최근 북마크 3개 표시
+    const recentBookmarks = bookmarkStore.sortBookmarks('createdAt').slice(0, 3)
+
+    recentBookmarks.forEach(bookmark => {
+      options.push({
+        label: bookmark.name,
+        key: `bookmark-${bookmark.id}`,
+        extra: bookmark.parentName,
+        props: {
+          onClick: () => router.push(bookmark.url)
+        }
+      })
+    })
+
+    if (bookmarkStore.bookmarkCount > 3) {
+      options.push({
+        type: 'divider'
+      })
+    }
+
+    options.push({
+      label: `모든 북마크 보기 (${bookmarkStore.bookmarkCount})`,
+      key: 'view-all'
+    })
+  }
+
+  return options
+})
+
+const handleBookmarkSelect = (key) => {
+  if (key === 'view-all') {
+    showBookmarkModal.value = true
+  }
 }
 </script>
 
@@ -276,6 +359,27 @@ const goHome = () => {
 
 .logo-container:hover .logo-icon {
   transform: rotate(-5deg);
+}
+
+/* 북마크 드롭다운 스타일 */
+.bookmark-dropdown-btn {
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.bookmark-dropdown-btn:hover {
+  color: #ffc107 !important;
+  transform: scale(1.1);
+}
+
+.bookmark-dropdown-btn.bookmark-active {
+  color: #ffc107;
+}
+
+.bookmark-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
 }
 
 /* Mobile Menu Styles */
