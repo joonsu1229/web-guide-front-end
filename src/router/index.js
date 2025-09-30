@@ -4,7 +4,8 @@ import DocumentView from '@/views/DocumentView.vue'
 import AnalyticsView from '@/views/AnalyticsView.vue'
 import JobManagement from '@/views/JobManagement.vue'
 import Manual from '@/views/Manual.vue'
-import ManualDetailView from '@/views/ManualDetailView.vue' 
+import ManualDetailView from '@/views/ManualDetailView.vue'
+import NoticeView from '@/views/NoticeView.vue' 
 
 const routes = [
     {
@@ -45,6 +46,15 @@ const routes = [
     meta: {
       title: '매뉴얼 관리',
       icon: 'management'
+    }
+  },
+  {
+    path: '/notice',
+    name: 'Notice',
+    component: NoticeView,
+    meta: {
+      title: '공지사항',
+      icon: 'notice'
     }
   },
   {

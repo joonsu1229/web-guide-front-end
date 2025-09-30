@@ -150,7 +150,8 @@ import {
   BookOutline,
   SettingsOutline,
   StatsChartOutline,
-  BookmarkOutline
+  BookmarkOutline,
+  NotificationsOutline
 } from '@vicons/ionicons5'
 import DarkModeToggle from '@/components/DarkModeToggle.vue'
 import AppFooter from '@/components/AppFooter.vue'
@@ -183,7 +184,8 @@ const getIcon = (iconName) => {
     search: SearchOutline,
     document: BookOutline,
     analytics: StatsChartOutline,
-    management: SettingsOutline
+    management: SettingsOutline,
+    notice: NotificationsOutline
   }
   return icons[iconName] || BookOutline
 }

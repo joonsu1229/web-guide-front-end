@@ -54,7 +54,7 @@ export default {
       localStorage.setItem('notice-dismissed', 'true')
     },
     showDetails() {
-      alert('새로운 기능과 개선사항을 확인하세요!')
+      this.$router.push('/notice')
     }
   },
   mounted() {
