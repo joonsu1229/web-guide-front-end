@@ -85,13 +85,13 @@ export default {
   },
   methods: {
     goToHomepage() {
-      window.open('https://www.workthrough.co.kr', '_blank')
+      window.open('https://www.woongjin.com/', '_blank')
     },
     goToBlog() {
-      window.open('https://blog.workthrough.co.kr', '_blank')
+      window.open('https://blog.naver.com/wjcloudcenter', '_blank')
     },
     goToYoutube() {
-      window.open('https://youtube.com/@workthrough', '_blank')
+      window.open('https://www.youtube.com/@woongjinmkt', '_blank')
     }
   }
 }
