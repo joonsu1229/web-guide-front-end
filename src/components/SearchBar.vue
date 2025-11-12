@@ -49,7 +49,6 @@
             <div class="result-header">
               <div class="result-info">
                 <n-tag type="success" size="tiny" round>{{ index + 1 }}</n-tag>
-                <span class="result-score">일치도: {{ Math.round(result.score * 100) }}%</span>
               </div>
               <n-button
                 size="small"

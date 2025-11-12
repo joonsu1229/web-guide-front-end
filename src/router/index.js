@@ -2,7 +2,6 @@ import { createRouter, createWebHistory } from 'vue-router'
 import SearchView from '@/views/SearchView.vue'
 import DocumentView from '@/views/DocumentView.vue'
 import AnalyticsView from '@/views/AnalyticsView.vue'
-import JobManagement from '@/views/JobManagement.vue'
 import Manual from '@/views/Manual.vue'
 import ManualDetailView from '@/views/ManualDetailView.vue'
 import NoticeView from '@/views/NoticeView.vue' 
@@ -28,16 +27,6 @@ const routes = [
     name: 'ManualDetailWithCategory',
     component: ManualDetailView,
     props: true
-  },  
-  {
-    path: '/JobManagement',
-    name: 'JobManagement',
-    component: JobManagement,
-    meta: {
-      title: '채용정보 관리',
-      icon: 'document',
-      hidden: true  // 메뉴에서 숨김
-    }
   },
   {
     path: '/documents',

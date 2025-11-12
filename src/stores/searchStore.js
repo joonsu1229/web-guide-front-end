@@ -42,7 +42,7 @@ export const useSearchStore = defineStore('search', () => {
   ])
 
   // Actions
-  const performSearch = async (query, type = 'hybrid') => {
+  const performSearch = async (query, type = 'search') => {
     console.log(`[Search Store] 검색 시작. Query: "${query}"`);
     if (!query.trim()) return
 
@@ -54,8 +54,8 @@ export const useSearchStore = defineStore('search', () => {
     const startTime = Date.now()
 
     try {
-      console.log('[Search Store] API를 호출합니다 (searchAPI.hybridSearch)');
-      const results = await searchAPI.hybridSearch(query, selectedCategory.value, searchOptions.value.limit)
+      console.log('[Search Store] API를 호출합니다 (searchAPI.search)');
+      const results = await searchAPI.search(query, selectedCategory.value, searchOptions.value.limit)
       
       console.log('[Search Store] API가 반환한 원본 결과:', results);
 
