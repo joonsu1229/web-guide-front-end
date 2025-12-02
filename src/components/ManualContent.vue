@@ -78,168 +78,159 @@
   </div>
 </template>
 
-<script>
-import { mapState } from 'pinia'
-import { useManualContentStore } from '@/stores/useManualContentStore'
-import { useBookmarkStore } from '@/stores/bookmarkStore'
-import { marked } from 'marked'; // marked 라이브러리 import 예시
+<script setup>
+import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue';
+import { useRoute } from 'vue-router';
+import { storeToRefs } from 'pinia';
+import { useManualContentStore } from '@/stores/useManualContentStore';
+import { useBookmarkStore } from '@/stores/bookmarkStore';
+import { marked } from 'marked';
 
-export default {
-  name: 'ManualContent',
-  props: {
-    activeItem: { type: Object, default: null }
-  },
-  data() {
-    return {
-      tocItems: [],
-      activeAnchor: '',
-      copyMessage: '링크 복사'
-    }
-  },
-  computed: {
-    ...mapState(useManualContentStore, ['currentContent', 'loading', 'error']),
+// --- Props ---
+const props = defineProps({
+  activeItem: { type: Object, default: null }
+});
 
-    bookmarkStore() {
-      return useBookmarkStore()
-    },
+// --- Stores ---
+const manualContentStore = useManualContentStore();
+const { currentContent, loading, error } = storeToRefs(manualContentStore);
+const bookmarkStore = useBookmarkStore();
+const route = useRoute();
 
-    isCurrentBookmarked() {
-      return this.activeItem ? this.bookmarkStore.isBookmarked(this.activeItem.id) : false
-    },
+// --- Refs ---
+const tocItems = ref([]);
+const activeAnchor = ref('');
+const copyMessage = ref('링크 복사');
+const contentAreaRef = ref(null);
 
-    renderedContentBody() {
-      const content = this.currentContent?.contentBody;
-      if (!content) {
-        return '';
-      }
+// --- Computed ---
+const isCurrentBookmarked = computed(() => {
+  return props.activeItem ? bookmarkStore.isBookmarked(props.activeItem.id) : false;
+});
 
-      // 1. API를 거치며 텍스트가 된 '\\n'을 실제 줄바꿈 문자로 변환
-      const unescapedString = content.replace(/\\n/g, '\n');
-
-      // 2. marked 라이브러리로 마크다운을 HTML로 변환
-      // { breaks: true } 옵션은 단순 줄바꿈(\n)을 <br> 태그
-      return marked.parse(unescapedString, { breaks: true });
-    },
-
-    getTooltipMessage() {
-      if (this.copyMessage === '복사됨!') {
-        return '링크가 클립보드에 복사되었습니다!';
-      } else if (this.copyMessage === '복사 실패') {
-        return '링크 복사에 실패했습니다. 다시 시도해주세요.';
-      } else {
-        return '이 매뉴얼의 링크를 복사하여 다른 사람과 공유하세요';
-      }
-    }
-  },
-
-  methods: {
-    extractTocItems() {
-      this.tocItems = [];
-      this.$nextTick(() => {
-        if (this.$refs.contentAreaRef) {
-          const headings = this.$refs.contentAreaRef.querySelectorAll('.content-body h2, .content-body h3');
-          headings.forEach((heading, index) => {
-            const id = `toc-anchor-${index}`;
-            heading.id = id;
-            this.tocItems.push({
-              id: id,
-              text: heading.textContent.trim(),
-              tagName: heading.tagName.toLowerCase()
-            });
-          });
-        }
-      });
-    },
-    scrollToSection(id) {
-      const element = document.getElementById(id);
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    },
-    handleScroll() {
-      if (this.tocItems.length === 0) return;
-      const scrollPosition = window.scrollY + 150;
-      let currentActiveId = '';
-      for (let i = this.tocItems.length - 1; i >= 0; i--) {
-        const item = this.tocItems[i];
-        const element = document.getElementById(item.id);
-        if (element && element.offsetTop <= scrollPosition) {
-          currentActiveId = item.id;
-          break;
-        }
-      }
-      this.activeAnchor = currentActiveId;
-    },
-    async copyCurrentUrl() {
-      try {
-        // 현재 라우트에서 section을 가져오기
-        const currentSection = this.$route.params.section;
-        const categoryId = this.activeItem?.id;
-
-        // categoryId가 있으면 해당 카테고리로 직접 이동할 수 있는 URL 생성
-        let shareUrl;
-        if (categoryId && currentSection) {
-          shareUrl = `${window.location.origin}/guide/${currentSection}/${categoryId}`;
-        } else {
-          shareUrl = window.location.href;
-        }
-
-        await navigator.clipboard.writeText(shareUrl);
-        this.copyMessage = '복사됨!';
-        setTimeout(() => {
-          this.copyMessage = '링크 복사';
-        }, 2000);
-      } catch (err) {
-        console.error('클립보드 복사 실패:', err);
-        this.copyMessage = '복사 실패';
-        setTimeout(() => {
-          this.copyMessage = '링크 복사';
-        }, 2000);
-      }
-    },
-
-    toggleBookmark() {
-      if (!this.activeItem) return;
-
-      const item = {
-        id: this.activeItem.id,
-        name: this.activeItem.name,
-        parentName: this.activeItem.parentName,
-        section: this.$route.params.section || 'P1',
-        description: this.currentContent?.contentBody?.substring(0, 100) || ''
-      };
-
-      const wasBookmarked = this.isCurrentBookmarked;
-      const success = this.bookmarkStore.toggleBookmark(item);
-
-      if (success) {
-        // 토스트 메시지나 알림으로 피드백 제공
-        const message = wasBookmarked ? '북마크에서 제거되었습니다.' : '북마크에 추가되었습니다.';
-        console.log(message);
-        // TODO: 실제 토스트 알림으로 교체
-      }
-    }
-  },
-  watch: {
-    currentContent: {
-      handler(newContent) {
-        if (newContent) {
-          this.extractTocItems();
-        } else {
-          this.tocItems = [];
-        }
-      },
-      deep: true,
-      immediate: true
-    }
-  },
-  mounted() {
-    window.addEventListener('scroll', this.handleScroll);
-  },
-  beforeUnmount() {
-    window.removeEventListener('scroll', this.handleScroll);
+const renderedContentBody = computed(() => {
+  const content = currentContent.value?.contentBody;
+  if (!content) {
+    return '';
   }
-}
+  const unescapedString = content.replace(/\\n/g, '\n');
+  return marked.parse(unescapedString, { breaks: true });
+});
+
+const getTooltipMessage = computed(() => {
+  if (copyMessage.value === '복사됨!') {
+    return '링크가 클립보드에 복사되었습니다!';
+  } else if (copyMessage.value === '복사 실패') {
+    return '링크 복사에 실패했습니다. 다시 시도해주세요.';
+  } else {
+    return '이 매뉴얼의 링크를 복사하여 다른 사람과 공유하세요';
+  }
+});
+
+// --- Methods ---
+const extractTocItems = () => {
+  tocItems.value = [];
+  nextTick(() => {
+    if (contentAreaRef.value) {
+      const headings = contentAreaRef.value.querySelectorAll('.content-body h2, .content-body h3');
+      headings.forEach((heading, index) => {
+        const id = `toc-anchor-${index}`;
+        heading.id = id;
+        tocItems.value.push({
+          id: id,
+          text: heading.textContent.trim(),
+          tagName: heading.tagName.toLowerCase()
+        });
+      });
+    }
+  });
+};
+
+const scrollToSection = (id) => {
+  const element = document.getElementById(id);
+  if (element) {
+    element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+};
+
+const handleScroll = () => {
+  if (tocItems.value.length === 0) return;
+  const scrollPosition = window.scrollY + 150;
+  let currentActiveId = '';
+  for (let i = tocItems.value.length - 1; i >= 0; i--) {
+    const item = tocItems.value[i];
+    const element = document.getElementById(item.id);
+    if (element && element.offsetTop <= scrollPosition) {
+      currentActiveId = item.id;
+      break;
+    }
+  }
+  activeAnchor.value = currentActiveId;
+};
+
+const copyCurrentUrl = async () => {
+  try {
+    const currentSection = route.params.section;
+    const categoryId = props.activeItem?.id;
+    
+    let shareUrl;
+    if (categoryId && currentSection) {
+      shareUrl = `${window.location.origin}/guide/${currentSection}/${categoryId}`;
+    } else {
+      shareUrl = window.location.href;
+    }
+
+    await navigator.clipboard.writeText(shareUrl);
+    copyMessage.value = '복사됨!';
+    setTimeout(() => {
+      copyMessage.value = '링크 복사';
+    }, 2000);
+  } catch (err) {
+    console.error('클립보드 복사 실패:', err);
+    copyMessage.value = '복사 실패';
+    setTimeout(() => {
+      copyMessage.value = '링크 복사';
+    }, 2000);
+  }
+};
+
+const toggleBookmark = () => {
+  if (!props.activeItem) return;
+
+  const item = {
+    id: props.activeItem.id,
+    name: props.activeItem.name,
+    parentName: props.activeItem.parentName,
+    section: route.params.section || 'P1',
+    description: currentContent.value?.contentBody?.substring(0, 100) || ''
+  };
+
+  const wasBookmarked = isCurrentBookmarked.value;
+  const success = bookmarkStore.toggleBookmark(item);
+
+  if (success) {
+    const message = wasBookmarked ? '북마크에서 제거되었습니다.' : '북마크에 추가되었습니다.';
+    console.log(message);
+  }
+};
+
+// --- Watch ---
+watch(currentContent, (newContent) => {
+  if (newContent) {
+    extractTocItems();
+  } else {
+    tocItems.value = [];
+  }
+}, { deep: true, immediate: true });
+
+// --- Lifecycle Hooks ---
+onMounted(() => {
+  window.addEventListener('scroll', handleScroll);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('scroll', handleScroll);
+});
 </script>
 
 <style scoped>

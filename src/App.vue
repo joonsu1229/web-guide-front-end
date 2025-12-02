@@ -157,6 +157,8 @@ import DarkModeToggle from '@/components/DarkModeToggle.vue'
 import AppFooter from '@/components/AppFooter.vue'
 import BookmarkList from '@/components/BookmarkList.vue'
 import { useBookmarkStore } from '@/stores/bookmarkStore'
+import { useCategoryStore } from '@/stores/useCategoryStore'
+import { usePortalMenuStore } from '@/stores/usePortalMenuStore'
 
 const router = useRouter()
 const bookmarkStore = useBookmarkStore()
@@ -173,6 +175,13 @@ onMounted(() => {
     isDarkMode.value = window.matchMedia('(prefers-color-scheme: dark)').matches
   }
   applyDarkMode()
+
+  // Pre-fetch global data
+  const categoryStore = useCategoryStore()
+  const portalMenuStore = usePortalMenuStore()
+
+  categoryStore.fetchCategories('P1')
+  portalMenuStore.fetchPortalMenus('P1')
 })
 
 const routes = computed(() =>

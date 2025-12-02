@@ -83,10 +83,13 @@ export default {
         }
       }
     },
-    // section prop이 바뀔 때 activeItemId를 초기화
+    // section prop이 바뀔 때 activeItemId를 초기화하고 새 데이터를 로드
     section: {
-        handler() {
+        async handler(newSection) {
             this.activeItemId = null;
+            if (newSection) {
+              await this.fetchCategoryTree('P1', newSection);
+            }
         },
         immediate: true
     },
@@ -101,8 +104,8 @@ export default {
     }
   },
   async created() {
-    // 컴포넌트가 생성될 때 카테고리 트리를 먼저 로드
-    await this.fetchCategoryTree('P1', this.section);
+    // 이제 section watcher의 immediate:true가 이 로직을 처리하므로 중복 호출을 피하기 위해 주석 처리하거나 삭제합니다.
+    // await this.fetchCategoryTree('P1', this.section);
   }
 }
 </script>
