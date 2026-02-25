@@ -2,158 +2,238 @@
   <div class="space-y-6" :class="{ 'dark-mode': isDark }">
     <div class="flex justify-between items-center">
       <div>
-        <h1 class="text-3xl font-bold" :class="isDark ? 'text-white' : 'text-gray-900'">매뉴얼 관리</h1>
-        <p class="mt-1" :class="isDark ? 'text-gray-300' : 'text-gray-600'">사용자 매뉴얼을 관리합니다</p>
+        <h1 class="text-3xl font-bold" :class="isDark ? 'text-white' : 'text-gray-900'">시스템 관리</h1>
+        <p class="mt-1" :class="isDark ? 'text-gray-300' : 'text-gray-600'">매뉴얼 및 카테고리를 관리합니다</p>
       </div>
     </div>
 
-    <div class="rounded-lg shadow-sm border p-4" :class="isDark ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-200'">
-      <div class="flex flex-col md:flex-row gap-4">
-        <div class="flex-1">
-          <n-input
-            v-model:value="searchQuery"
-            placeholder="카테고리 이름으로 검색..."
-            clearable
-            @input="handleSearch"
-          >
-            <template #prefix>
-              <n-icon>
-                <SearchOutline />
-              </n-icon>
+    <n-tabs type="line" animated>
+      <n-tab-pane name="manuals" tab="매뉴얼 관리">
+        <div class="space-y-6 mt-4">
+          <div class="rounded-lg shadow-sm border p-4" :class="isDark ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-200'">
+            <div class="flex flex-col md:flex-row gap-4">
+              <div class="flex-1">
+                <n-input
+                  v-model:value="searchQuery"
+                  placeholder="카테고리 이름으로 검색..."
+                  clearable
+                  @input="handleSearch"
+                >
+                  <template #prefix>
+                    <n-icon>
+                      <SearchOutline />
+                    </n-icon>
+                  </template>
+                </n-input>
+              </div>
+              <div class="flex gap-2">
+                <n-select
+                  v-model:value="filterCategory"
+                  :options="categorySelectOptions"
+                  placeholder="메뉴 필터"
+                  class="w-40"
+                  clearable
+                  @update:value="handleFilter"
+                />
+                <n-button @click="handleRefresh" :loading="documentStore.isLoading">
+                  <template #icon>
+                    <n-icon>
+                      <RefreshOutline />
+                    </n-icon>
+                  </template>
+                </n-button>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+            <!-- 로딩 상태일 때 스켈레톤 카드들 -->
+            <template v-if="portalMenuStore.isLoading || utilStore.isLoading">
+              <div v-for="i in 5" :key="i" class="rounded-lg shadow-sm border p-4 animate-pulse" :class="isDark ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-200'">
+                <div class="flex items-center">
+                  <div class="flex-1 space-y-2">
+                    <n-skeleton height="14px" width="70%" />
+                    <n-skeleton height="32px" width="50%" />
+                  </div>
+                  <n-skeleton height="24px" width="24px" circle />
+                </div>
+              </div>
             </template>
-          </n-input>
-        </div>
-        <div class="flex gap-2">
-          <n-select
-            v-model:value="filterCategory"
-            :options="categorySelectOptions"
-            placeholder="메뉴 필터"
-            class="w-40"
-            clearable
-            @update:value="handleFilter"
-          />
-          <n-button @click="handleRefresh" :loading="documentStore.isLoading">
-            <template #icon>
-              <n-icon>
-                <RefreshOutline />
-              </n-icon>
-            </template>
-          </n-button>
-        </div>
-      </div>
-    </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-      <!-- 로딩 상태일 때 스켈레톤 카드들 -->
-      <template v-if="portalMenuStore.isLoading || utilStore.isLoading">
-        <div v-for="i in 5" :key="i" class="rounded-lg shadow-sm border p-4 animate-pulse" :class="isDark ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-200'">
-          <div class="flex items-center">
-            <div class="flex-1 space-y-2">
-              <n-skeleton height="14px" width="70%" />
-              <n-skeleton height="32px" width="50%" />
-            </div>
-            <n-skeleton height="24px" width="24px" circle />
-          </div>
-        </div>
-      </template>
-
-      <!-- 실제 데이터 카드들 -->
-      <template v-else>
-        <div class="rounded-lg shadow-sm border p-4" :class="isDark ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-200'">
-          <div class="flex items-center">
-            <div class="flex-1">
-              <p class="text-sm font-medium" :class="isDark ? 'text-gray-300' : 'text-gray-600'">총 매뉴얼 수</p>
-              <p class="text-2xl font-bold" :class="isDark ? 'text-white' : 'text-gray-900'">{{ totalDocumentCount }}</p>
-            </div>
-            <n-icon size="24" color="#6366f1">
-              <DocumentTextOutline />
-            </n-icon>
-          </div>
-        </div>
-
-        <div
-          v-for="(menu, index) in topMenus"
-          :key="menu.section"
-          class="rounded-lg shadow-sm border p-4"
-          :class="isDark ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-200'"
-        >
-          <div class="flex items-center">
-            <div class="flex-1">
-              <p class="text-sm font-medium" :class="isDark ? 'text-gray-300' : 'text-gray-600'">{{ menu.title }}</p>
-              <p class="text-2xl font-bold" :class="getMenuColorClass(index)">{{ getMenuDocumentCount(menu.section) }}</p>
-            </div>
-            <n-icon size="24" :color="getMenuColor(index)">
-              <DocumentTextOutline />
-            </n-icon>
-          </div>
-        </div>
-      </template>
-    </div>
-
-    <div class="rounded-lg shadow-sm border" :class="isDark ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-200'">
-      <div class="px-4 py-5 sm:p-6">
-        <!-- 커스텀 로딩 상태 -->
-        <div v-if="categoryStore.isLoading || utilStore.isLoading" class="space-y-6">
-          <!-- 로딩 헤더 -->
-          <div class="text-center py-8">
-            <div class="inline-flex flex-col items-center gap-4">
-              <div class="relative">
-                <div class="w-12 h-12 border-3 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
-                <div class="absolute inset-0 flex items-center justify-center">
-                  <n-icon :size="20" color="#4f46e5" class="animate-pulse">
+            <!-- 실제 데이터 카드들 -->
+            <template v-else>
+              <div class="rounded-lg shadow-sm border p-4" :class="isDark ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-200'">
+                <div class="flex items-center">
+                  <div class="flex-1">
+                    <p class="text-sm font-medium" :class="isDark ? 'text-gray-300' : 'text-gray-600'">총 매뉴얼 수</p>
+                    <p class="text-2xl font-bold" :class="isDark ? 'text-white' : 'text-gray-900'">{{ totalDocumentCount }}</p>
+                  </div>
+                  <n-icon size="24" color="#6366f1">
                     <DocumentTextOutline />
                   </n-icon>
                 </div>
               </div>
-              <div class="space-y-1">
-                <p class="text-base font-medium" :class="isDark ? 'text-gray-200' : 'text-gray-700'">매뉴얼 데이터 로딩 중...</p>
-                <p class="text-sm" :class="isDark ? 'text-gray-400' : 'text-gray-500'">잠시만 기다려주세요</p>
+
+              <div
+                v-for="(menu, index) in topMenus"
+                :key="menu.section"
+                class="rounded-lg shadow-sm border p-4"
+                :class="isDark ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-200'"
+              >
+                <div class="flex items-center">
+                  <div class="flex-1">
+                    <p class="text-sm font-medium" :class="isDark ? 'text-gray-300' : 'text-gray-600'">{{ menu.title }}</p>
+                    <p class="text-2xl font-bold" :class="getMenuColorClass(index)">{{ getMenuDocumentCount(menu.section) }}</p>
+                  </div>
+                  <n-icon size="24" :color="getMenuColor(index)">
+                    <DocumentTextOutline />
+                  </n-icon>
+                </div>
               </div>
-            </div>
+            </template>
           </div>
 
-          <!-- 테이블 스켈레톤 -->
-          <div class="space-y-4">
-            <!-- 테이블 헤더 스켈레톤 -->
-            <div class="grid grid-cols-6 gap-4 p-4 rounded-lg" :class="isDark ? 'bg-gray-700' : 'bg-gray-50'">
-              <n-skeleton height="20px" width="60px" />
-              <n-skeleton height="20px" width="80px" />
-              <n-skeleton height="20px" width="100px" />
-              <n-skeleton height="20px" width="120px" />
-              <n-skeleton height="20px" width="60px" />
-              <n-skeleton height="20px" width="80px" />
-            </div>
+          <div class="rounded-lg shadow-sm border" :class="isDark ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-200'">
+            <div class="px-4 py-5 sm:p-6">
+              <!-- 커스텀 로딩 상태 -->
+              <div v-if="categoryStore.isLoading || utilStore.isLoading" class="space-y-6">
+                <!-- 로딩 헤더 -->
+                <div class="text-center py-8">
+                  <div class="inline-flex flex-col items-center gap-4">
+                    <div class="relative">
+                      <div class="w-12 h-12 border-3 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
+                      <div class="absolute inset-0 flex items-center justify-center">
+                        <n-icon :size="20" color="#4f46e5" class="animate-pulse">
+                          <DocumentTextOutline />
+                        </n-icon>
+                      </div>
+                    </div>
+                    <div class="space-y-1">
+                      <p class="text-base font-medium" :class="isDark ? 'text-gray-200' : 'text-gray-700'">매뉴얼 데이터 로딩 중...</p>
+                      <p class="text-sm" :class="isDark ? 'text-gray-400' : 'text-gray-500'">잠시만 기다려주세요</p>
+                    </div>
+                  </div>
+                </div>
 
-            <!-- 테이블 행 스켈레톤 -->
-            <div v-for="i in 5" :key="i" class="grid grid-cols-6 gap-4 p-4 border-t animate-pulse" :class="isDark ? 'border-gray-600' : 'border-gray-200'">
-              <n-skeleton height="16px" width="40px" />
-              <n-skeleton height="16px" width="60px" />
-              <n-skeleton height="16px" width="90%" />
-              <n-skeleton height="16px" width="80%" />
-              <n-skeleton height="20px" width="60px" round />
-              <div class="flex gap-2">
-                <n-skeleton height="28px" width="50px" />
-                <n-skeleton height="28px" width="50px" />
-                <n-skeleton height="28px" width="50px" />
+                <!-- 테이블 스켈레톤 -->
+                <div class="space-y-4">
+                  <!-- 테이블 헤더 스켈레톤 -->
+                  <div class="grid grid-cols-6 gap-4 p-4 rounded-lg" :class="isDark ? 'bg-gray-700' : 'bg-gray-50'">
+                    <n-skeleton height="20px" width="60px" />
+                    <n-skeleton height="20px" width="80px" />
+                    <n-skeleton height="20px" width="100px" />
+                    <n-skeleton height="20px" width="120px" />
+                    <n-skeleton height="20px" width="60px" />
+                    <n-skeleton height="20px" width="80px" />
+                  </div>
+
+                  <!-- 테이블 행 스켈레톤 -->
+                  <div v-for="i in 5" :key="i" class="grid grid-cols-6 gap-4 p-4 border-t animate-pulse" :class="isDark ? 'border-gray-600' : 'border-gray-200'">
+                    <n-skeleton height="16px" width="40px" />
+                    <n-skeleton height="16px" width="60px" />
+                    <n-skeleton height="16px" width="90%" />
+                    <n-skeleton height="16px" width="80%" />
+                    <n-skeleton height="20px" width="60px" round />
+                    <div class="flex gap-2">
+                      <n-skeleton height="28px" width="50px" />
+                      <n-skeleton height="28px" width="50px" />
+                      <n-skeleton height="28px" width="50px" />
+                    </div>
+                  </div>
+                </div>
               </div>
+
+              <!-- 실제 데이터 테이블 -->
+              <n-data-table
+                v-else
+                :columns="columns"
+                :data="filteredCategories"
+                :loading="false"
+                :pagination="paginationConfig"
+                :row-key="(row) => row.id"
+                size="medium"
+                striped
+                :theme-overrides="isDark ? dataTableDarkTheme : {}"
+              />
             </div>
           </div>
         </div>
+      </n-tab-pane>
 
-        <!-- 실제 데이터 테이블 -->
-        <n-data-table
-          v-else
-          :columns="columns"
-          :data="filteredCategories"
-          :loading="false"
-          :pagination="paginationConfig"
-          :row-key="(row) => row.id"
-          size="medium"
-          striped
-          :theme-overrides="isDark ? dataTableDarkTheme : {}"
-        />
-      </div>
-    </div>
+      <n-tab-pane name="categories" tab="카테고리 관리">
+        <div class="space-y-6 mt-4">
+          <div class="flex justify-between items-center">
+            <div class="flex-1 max-w-md">
+              <n-input
+                v-model:value="categorySearchQuery"
+                placeholder="카테고리 이름으로 검색..."
+                clearable
+              >
+                <template #prefix>
+                  <n-icon><SearchOutline /></n-icon>
+                </template>
+              </n-input>
+            </div>
+            <n-button type="primary" @click="openCreateCategoryModal">
+              <template #icon>
+                <n-icon><AddOutline /></n-icon>
+              </template>
+              카테고리 등록
+            </n-button>
+          </div>
+
+          <div class="rounded-lg shadow-sm border" :class="isDark ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-200'">
+            <n-data-table
+              :columns="categoryColumns"
+              :data="filteredRawCategories"
+              :loading="categoryStore.isLoading"
+              :pagination="paginationConfig"
+              :row-key="(row) => row.id"
+              size="medium"
+              striped
+              :theme-overrides="isDark ? dataTableDarkTheme : {}"
+            />
+          </div>
+        </div>
+      </n-tab-pane>
+
+      <n-tab-pane name="menus" tab="메뉴 관리">
+        <div class="space-y-6 mt-4">
+          <div class="flex justify-between items-center">
+            <div class="flex-1 max-w-md">
+              <n-input
+                v-model:value="menuSearchQuery"
+                placeholder="메뉴 이름으로 검색..."
+                clearable
+              >
+                <template #prefix>
+                  <n-icon><SearchOutline /></n-icon>
+                </template>
+              </n-input>
+            </div>
+            <n-button type="primary" @click="openCreateMenuModal">
+              <template #icon>
+                <n-icon><AddOutline /></n-icon>
+              </template>
+              메뉴 등록
+            </n-button>
+          </div>
+
+          <div class="rounded-lg shadow-sm border" :class="isDark ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-200'">
+            <n-data-table
+              :columns="menuColumns"
+              :data="filteredMenus"
+              :loading="portalMenuStore.isLoading"
+              :pagination="paginationConfig"
+              :row-key="(row) => row.id"
+              size="medium"
+              striped
+              :theme-overrides="isDark ? dataTableDarkTheme : {}"
+            />
+          </div>
+        </div>
+      </n-tab-pane>
+    </n-tabs>
 
     <n-modal v-model:show="showCreateModal" :mask-closable="false">
       <n-card
@@ -337,12 +417,228 @@
         </template>
       </n-card>
     </n-modal>
+
+    <!-- 카테고리 등록/수정 모달 -->
+    <n-modal v-model:show="showCategoryModal" :mask-closable="false">
+      <n-card
+        style="width: 500px"
+        :title="editingCategory ? '카테고리 수정' : '카테고리 등록'"
+        :bordered="false"
+        size="huge"
+        role="dialog"
+        aria-modal="true"
+      >
+        <template #header-extra>
+          <n-button quaternary circle @click="closeCategoryModal">
+            <template #icon>
+              <n-icon><CloseOutline /></n-icon>
+            </template>
+          </n-button>
+        </template>
+
+        <n-form
+          ref="categoryFormRef"
+          :model="categoryFormData"
+          :rules="categoryFormRules"
+          label-placement="top"
+        >
+          <n-form-item label="상위 메뉴" path="section">
+            <n-select
+              v-model:value="categoryFormData.section"
+              :options="sectionOptions"
+              placeholder="상위 메뉴를 선택하세요"
+            />
+          </n-form-item>
+
+          <n-form-item label="카테고리 이름" path="name">
+            <n-input
+              v-model:value="categoryFormData.name"
+              placeholder="카테고리 이름을 입력하세요"
+            />
+          </n-form-item>
+
+          <n-form-item label="설명" path="description">
+            <n-input
+              v-model:value="categoryFormData.description"
+              type="textarea"
+              placeholder="카테고리 설명을 입력하세요"
+              :autosize="{ minRows: 2, maxRows: 4 }"
+            />
+          </n-form-item>
+
+          <n-form-item label="정렬 순서" path="displayOrder">
+            <n-input-number
+              v-model:value="categoryFormData.displayOrder"
+              :min="1"
+              class="w-full"
+            />
+          </n-form-item>
+        </n-form>
+
+        <template #footer>
+          <div class="flex justify-end gap-2">
+            <n-button @click="closeCategoryModal">취소</n-button>
+            <n-button
+              type="primary"
+              @click="handleCategorySubmit"
+              :loading="categoryStore.isLoading"
+            >
+              {{ editingCategory ? '수정' : '등록' }}
+            </n-button>
+          </div>
+        </template>
+      </n-card>
+    </n-modal>
+
+    <!-- 카테고리 삭제 확인 모달 -->
+    <n-modal v-model:show="showCategoryDeleteModal">
+      <n-card
+        style="width: 400px"
+        title="카테고리 삭제 확인"
+        :bordered="false"
+        size="huge"
+        role="dialog"
+        aria-modal="true"
+      >
+        <n-space vertical>
+          <n-text>정말로 이 카테고리를 삭제하시겠습니까?</n-text>
+          <n-text strong>{{ deletingCategory?.name }}</n-text>
+          <n-text depth="3" size="small">
+            카테고리에 속한 매뉴얼 데이터가 있을 경우 삭제가 불가능할 수 있습니다.
+          </n-text>
+        </n-space>
+
+        <template #footer>
+          <div class="flex justify-end gap-2">
+            <n-button @click="showCategoryDeleteModal = false">취소</n-button>
+            <n-button
+              type="error"
+              @click="confirmDeleteCategory"
+              :loading="categoryStore.isLoading"
+            >
+              삭제
+            </n-button>
+          </div>
+        </template>
+      </n-card>
+    </n-modal>
+
+    <!-- 메뉴 등록/수정 모달 -->
+    <n-modal v-model:show="showMenuModal" :mask-closable="false">
+      <n-card
+        style="width: 500px"
+        :title="editingMenu ? '메뉴 수정' : '메뉴 등록'"
+        :bordered="false"
+        size="huge"
+        role="dialog"
+        aria-modal="true"
+      >
+        <template #header-extra>
+          <n-button quaternary circle @click="closeMenuModal">
+            <template #icon>
+              <n-icon><CloseOutline /></n-icon>
+            </template>
+          </n-button>
+        </template>
+
+        <n-form
+          ref="menuFormRef"
+          :model="menuFormData"
+          :rules="menuFormRules"
+          label-placement="top"
+        >
+          <n-form-item label="메뉴 키(Section)" path="section">
+            <n-input
+              v-model:value="menuFormData.section"
+              placeholder="메뉴의 고유 키를 입력하세요 (예: portal)"
+              :disabled="!!editingMenu"
+            />
+          </n-form-item>
+
+          <n-form-item label="메뉴 이름(Title)" path="title">
+            <n-input
+              v-model:value="menuFormData.title"
+              placeholder="메뉴 이름을 입력하세요"
+            />
+          </n-form-item>
+
+          <n-form-item label="설명" path="description">
+            <n-input
+              v-model:value="menuFormData.description"
+              type="textarea"
+              placeholder="메뉴 설명을 입력하세요"
+              :autosize="{ minRows: 2, maxRows: 4 }"
+            />
+          </n-form-item>
+
+          <n-form-item label="아이콘 키" path="icon">
+            <n-input
+              v-model:value="menuFormData.icon"
+              placeholder="아이콘 키를 입력하세요"
+            />
+          </n-form-item>
+
+          <n-form-item label="CSS 클래스" path="className">
+            <n-input
+              v-model:value="menuFormData.className"
+              placeholder="CSS 클래스명을 입력하세요"
+            />
+          </n-form-item>
+        </n-form>
+
+        <template #footer>
+          <div class="flex justify-end gap-2">
+            <n-button @click="closeMenuModal">취소</n-button>
+            <n-button
+              type="primary"
+              @click="handleMenuSubmit"
+              :loading="portalMenuStore.isLoading"
+            >
+              {{ editingMenu ? '수정' : '등록' }}
+            </n-button>
+          </div>
+        </template>
+      </n-card>
+    </n-modal>
+
+    <!-- 메뉴 삭제 확인 모달 -->
+    <n-modal v-model:show="showMenuDeleteModal">
+      <n-card
+        style="width: 400px"
+        title="메뉴 삭제 확인"
+        :bordered="false"
+        size="huge"
+        role="dialog"
+        aria-modal="true"
+      >
+        <n-space vertical>
+          <n-text>정말로 이 메뉴를 삭제하시겠습니까?</n-text>
+          <n-text strong>{{ deletingMenu?.title }}</n-text>
+          <n-text depth="3" size="small">
+            메뉴에 포함된 카테고리와 매뉴얼이 모두 삭제되거나 접근이 불가능해질 수 있습니다.
+          </n-text>
+        </n-space>
+
+        <template #footer>
+          <div class="flex justify-end gap-2">
+            <n-button @click="showMenuDeleteModal = false">취소</n-button>
+            <n-button
+              type="error"
+              @click="confirmDeleteMenu"
+              :loading="portalMenuStore.isLoading"
+            >
+              삭제
+            </n-button>
+          </div>
+        </template>
+      </n-card>
+    </n-modal>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, h } from 'vue'
-import { useMessage, NButton, NIcon, NTag, NText, NEllipsis } from 'naive-ui'
+import { useMessage, NButton, NIcon, NTag, NText, NEllipsis, NInputNumber } from 'naive-ui'
 import { useDocumentStore } from '@/stores/documentStore'
 import { usePortalMenuStore } from '@/stores/usePortalMenuStore'
 import { useCategoryStore } from '@/stores/useCategoryStore'
@@ -408,12 +704,47 @@ const previewDocument = ref(null)
 const previewContent = ref('')
 const formRef = ref(null)
 
+// 카테고리 관리 관련 상태
+const categorySearchQuery = ref('')
+const showCategoryModal = ref(false)
+const showCategoryDeleteModal = ref(false)
+const editingCategory = ref(null)
+const deletingCategory = ref(null)
+const categoryFormRef = ref(null)
+
+// 메뉴 관리 관련 상태
+const menuSearchQuery = ref('')
+const showMenuModal = ref(false)
+const showMenuDeleteModal = ref(false)
+const editingMenu = ref(null)
+const deletingMenu = ref(null)
+const menuFormRef = ref(null)
+
 // Form data
 const formData = ref({
   title: '',
   content: '',
   menu: '',
   category: ''
+})
+
+// 카테고리 폼 데이터
+const categoryFormData = ref({
+  name: '',
+  description: '',
+  displayOrder: 1,
+  section: 'portal',
+  portalId: 'P1'
+})
+
+// 메뉴 폼 데이터
+const menuFormData = ref({
+  section: '',
+  title: '',
+  description: '',
+  icon: 'portal',
+  className: '',
+  portalId: 'P1'
 })
 
 // 다크모드용 데이터 테이블 테마
@@ -457,6 +788,29 @@ const formRules = {
   ]
 }
 
+// 카테고리 폼 규칙
+const categoryFormRules = {
+  name: [
+    { required: true, message: '카테고리 이름을 입력해주세요', trigger: 'blur' }
+  ],
+  section: [
+    { required: true, message: '상위 메뉴를 선택해주세요', trigger: 'change' }
+  ],
+  displayOrder: [
+    { required: true, type: 'number', message: '정렬 순서를 입력해주세요', trigger: 'blur' }
+  ]
+}
+
+// 메뉴 폼 규칙
+const menuFormRules = {
+  section: [
+    { required: true, message: '메뉴 키(section)를 입력해주세요', trigger: 'blur' }
+  ],
+  title: [
+    { required: true, message: '메뉴 이름을 입력해주세요', trigger: 'blur' }
+  ]
+}
+
 const categoryOptions = computed(() => {
   if (!categoryStore.categories || categoryStore.categories.length === 0) {
     return []
@@ -465,6 +819,20 @@ const categoryOptions = computed(() => {
     label: category.name || category.title,
     value: category.id.toString()
   }))
+})
+
+const sectionOptions = computed(() => {
+  if (portalMenuStore.banners && portalMenuStore.banners.length > 0) {
+    return portalMenuStore.banners.map(menu => ({
+      label: menu.title,
+      value: menu.section
+    }))
+  }
+  return [
+    { label: '포탈', value: 'portal' },
+    { label: '전자결재', value: 'approval' },
+    { label: '메일', value: 'mail' }
+  ]
 })
 
 const categorySelectOptions = computed(() => {
@@ -528,19 +896,6 @@ const columns = [
     width: 80,
     align: 'center'
   },
-/*   {
-    title: '날짜',
-    key: 'date',
-    width: 180,
-    render: (row) => {
-      const created = row.createdAt ? new Date(row.createdAt).toLocaleDateString() : '-'
-      const updated = row.updatedAt ? new Date(row.updatedAt).toLocaleDateString() : '-'
-      return h('div', { class: 'text-xs' }, [
-        h('div', `생성: ${created}`),
-        h('div', { class: 'text-gray-500' }, `수정: ${updated}`)
-      ])
-    }
-  }, */
   {
     title: '작업',
     key: 'actions',
@@ -571,6 +926,86 @@ const columns = [
         quaternary: true,
         type: 'error',
         onClick: () => deleteDocument(row),
+        style: { marginLeft: '4px' }
+      }, {
+        icon: () => h(NIcon, null, { default: () => h(TrashOutline) }),
+        default: () => '삭제'
+      })
+    ]
+  }
+]
+
+// 카테고리 관리 테이블 컬럼
+const categoryColumns = [
+  { title: 'ID', key: 'id', width: 80, align: 'center' },
+  { 
+    title: '상위 메뉴', 
+    key: 'section', 
+    width: 120,
+    render: (row) => {
+      const section = sectionOptions.value.find(s => s.value === row.section)
+      return section ? section.label : row.section
+    }
+  },
+  { title: '카테고리 이름', key: 'name', minWidth: 150 },
+  { title: '설명', key: 'description', minWidth: 200, ellipsis: { tooltip: true } },
+  { title: '순서', key: 'displayOrder', width: 70, align: 'center' },
+  {
+    title: '작업',
+    key: 'actions',
+    width: 150,
+    align: 'center',
+    render: (row) => [
+      h(NButton, {
+        size: 'small',
+        quaternary: true,
+        type: 'primary',
+        onClick: () => editCategory(row)
+      }, {
+        icon: () => h(NIcon, null, { default: () => h(CreateOutline) }),
+        default: () => '수정'
+      }),
+      h(NButton, {
+        size: 'small',
+        quaternary: true,
+        type: 'error',
+        onClick: () => deleteCategory(row),
+        style: { marginLeft: '4px' }
+      }, {
+        icon: () => h(NIcon, null, { default: () => h(TrashOutline) }),
+        default: () => '삭제'
+      })
+    ]
+  }
+]
+
+// 메뉴 관리 테이블 컬럼
+const menuColumns = [
+  { title: 'ID', key: 'id', width: 80, align: 'center' },
+  { title: '키(section)', key: 'section', width: 120 },
+  { title: '메뉴 이름', key: 'title', width: 120 },
+  { title: '설명', key: 'description', minWidth: 200, ellipsis: { tooltip: true } },
+  { title: '아이콘', key: 'icon', width: 150 },
+  {
+    title: '작업',
+    key: 'actions',
+    width: 200,
+    align: 'center',
+    render: (row) => [
+      h(NButton, {
+        size: 'small',
+        quaternary: true,
+        type: 'primary',
+        onClick: () => editMenu(row)
+      }, {
+        icon: () => h(NIcon, null, { default: () => h(CreateOutline) }),
+        default: () => '수정'
+      }),
+      h(NButton, {
+        size: 'small',
+        quaternary: true,
+        type: 'error',
+        onClick: () => deleteMenu(row),
         style: { marginLeft: '4px' }
       }, {
         icon: () => h(NIcon, null, { default: () => h(TrashOutline) }),
@@ -612,6 +1047,38 @@ const filteredCategories = computed(() => {
   return categories
 })
 
+// 카테고리 관리 탭 필터링된 데이터
+const filteredRawCategories = computed(() => {
+  let categories = categoryStore.categories || []
+  
+  if (categorySearchQuery.value) {
+    const query = categorySearchQuery.value.toLowerCase().trim()
+    categories = categories.filter(c => 
+      (c.name && c.name.toLowerCase().includes(query)) ||
+      (c.description && c.description.toLowerCase().includes(query)) ||
+      (c.section && c.section.toLowerCase().includes(query))
+    )
+  }
+  
+  return categories
+})
+
+// 메뉴 관리 탭 필터링된 데이터
+const filteredMenus = computed(() => {
+  let menus = portalMenuStore.banners || []
+  
+  if (menuSearchQuery.value) {
+    const query = menuSearchQuery.value.toLowerCase().trim()
+    menus = menus.filter(m => 
+      (m.title && m.title.toLowerCase().includes(query)) ||
+      (m.description && m.description.toLowerCase().includes(query)) ||
+      (m.section && m.section.toLowerCase().includes(query))
+    )
+  }
+  
+  return menus
+})
+
 // Methods
 const handleSearch = () => {}
 const handleFilter = () => {}
@@ -641,20 +1108,17 @@ const previewDocumentHandler = async (document) => {
   showPreviewModal.value = true
 }
 
-// [수정됨] editDocument 함수가 클릭된 행의 메뉴와 카테고리를 설정하도록 변경
+// editDocument 함수가 클릭된 행의 메뉴와 카테고리를 설정하도록 변경
 const editDocument = async (document) => {
   editingDocument.value = document; // 수정 모드 활성화
 
   await manualContentStore.fetchContent('P1', document.id);
 
-  // utilStore에서 제공하는 행 데이터는 id를 포함
-  const parentId = document.id ? document.id.toString() : '';
-
   formData.value = {
     title: document.description || '',
     content: manualContentStore.currentContent?.contentBody || '',
-    menu: document.menuTitle, // 행의 id를 사용
-    category: document.id.toString() // 행의 카테고리 ID를 사용
+    menu: document.menuTitle, 
+    category: document.id.toString() 
   };
   showPreviewModal.value = false;
   showCreateModal.value = true;
@@ -689,22 +1153,18 @@ const handleSubmit = async () => {
       portalId: "P1",
       contentBody: formData.value.content
     }
-    if (editingDocument.value) {
-      await documentStore.createDocument(sendData)
-      message.success('매뉴얼이 수정되었습니다')
-    } else {
-      await documentStore.createDocument(sendData)
-      message.success('매뉴얼이 생성되었습니다')
-    }
+    
+    await documentStore.createDocument(sendData)
+    message.success(editingDocument.value ? '매뉴얼이 수정되었습니다' : '매뉴얼이 생성되었습니다')
+    
     closeModal()
   } catch (error) {
     message.error(error?.message || '양식을 확인해주세요')
   }
 }
 
-// [수정됨] openCreateModal 함수가 클릭된 행의 메뉴와 카테고리를 설정하도록 변경
 const openCreateModal = (categoryRow) => {
-  editingDocument.value = null; // 생성 모드이므로 수정 중인 문서는 null로 설정
+  editingDocument.value = null; 
 
   formData.value = {
     title: categoryRow.description,
@@ -719,7 +1179,6 @@ const closeModal = () => {
   showCreateModal.value = false
   editingDocument.value = null
   
-  // 폼 데이터 초기화
   formData.value = {
     title: '',
     content: '',
@@ -729,34 +1188,172 @@ const closeModal = () => {
   formRef.value?.restoreValidation()
 }
 
+// 카테고리 관리 메서드들
+const openCreateCategoryModal = () => {
+  editingCategory.value = null
+  categoryFormData.value = {
+    name: '',
+    description: '',
+    displayOrder: 1,
+    section: 'portal',
+    portalId: 'P1'
+  }
+  showCategoryModal.value = true
+}
+
+const editCategory = (category) => {
+  editingCategory.value = category
+  categoryFormData.value = {
+    name: category.name,
+    description: category.description || '',
+    displayOrder: category.displayOrder || 1,
+    section: category.section || 'portal',
+    portalId: category.portalId || 'P1'
+  }
+  showCategoryModal.value = true
+}
+
+const deleteCategory = (category) => {
+  deletingCategory.value = category
+  showCategoryDeleteModal.value = true
+}
+
+const closeCategoryModal = () => {
+  showCategoryModal.value = false
+  editingCategory.value = null
+  categoryFormRef.value?.restoreValidation()
+}
+
+const handleCategorySubmit = async () => {
+  try {
+    await categoryFormRef.value?.validate()
+    
+    if (editingCategory.value) {
+      // 수정 시 규격: /api/categories/{id}?portalId=P1
+      await categoryStore.updateCategory(
+        editingCategory.value.id, 
+        categoryFormData.value.portalId, 
+        {
+          name: categoryFormData.value.name,
+          description: categoryFormData.value.description,
+          displayOrder: categoryFormData.value.displayOrder
+        }
+      )
+      message.success('카테고리가 수정되었습니다')
+    } else {
+      // 생성 시 규격: Body에 portalId 포함
+      await categoryStore.createCategory(categoryFormData.value)
+      message.success('카테고리가 등록되었습니다')
+    }
+    
+    closeCategoryModal()
+    // 목록 새로고침
+    await categoryStore.fetchCategories('P1')
+  } catch (error) {
+    message.error(error?.message || '양식을 확인해주세요')
+  }
+}
+
+const confirmDeleteCategory = async () => {
+  try {
+    await categoryStore.deleteCategory(deletingCategory.value.id, 'P1')
+    message.success('카테고리가 삭제되었습니다')
+    showCategoryDeleteModal.value = false
+    deletingCategory.value = null
+    await categoryStore.fetchCategories('P1')
+  } catch (error) {
+    message.error(error?.message || '삭제 중 오류가 발생했습니다')
+  }
+}
+
+// 메뉴 관리 메서드들
+const openCreateMenuModal = () => {
+  editingMenu.value = null
+  menuFormData.value = {
+    section: '',
+    title: '',
+    description: '',
+    icon: 'portal',
+    className: '',
+    portalId: 'P1'
+  }
+  showMenuModal.value = true
+}
+
+const editMenu = (menu) => {
+  editingMenu.value = menu
+  menuFormData.value = {
+    section: menu.section,
+    title: menu.title,
+    description: menu.description || '',
+    icon: menu.icon || 'portal',
+    className: menu.className || '',
+    portalId: menu.portalId || 'P1'
+  }
+  showMenuModal.value = true
+}
+
+const deleteMenu = (menu) => {
+  deletingMenu.value = menu
+  showMenuDeleteModal.value = true
+}
+
+const closeMenuModal = () => {
+  showMenuModal.value = false
+  editingMenu.value = null
+  menuFormRef.value?.restoreValidation()
+}
+
+const handleMenuSubmit = async () => {
+  try {
+    await menuFormRef.value?.validate()
+    
+    if (editingMenu.value) {
+      await portalMenuStore.updatePortalMenu(editingMenu.value.id, menuFormData.value)
+      message.success('메뉴가 수정되었습니다')
+    } else {
+      await portalMenuStore.createPortalMenu(menuFormData.value)
+      message.success('메뉴가 등록되었습니다')
+    }
+    
+    closeMenuModal()
+    await portalMenuStore.fetchPortalMenus('P1')
+  } catch (error) {
+    message.error(error?.message || '양식을 확인해주세요')
+  }
+}
+
+const confirmDeleteMenu = async () => {
+  try {
+    await portalMenuStore.deletePortalMenu(deletingMenu.value.id, 'P1')
+    message.success('메뉴가 삭제되었습니다')
+    showMenuDeleteModal.value = false
+    deletingMenu.value = null
+    await portalMenuStore.fetchPortalMenus('P1')
+  } catch (error) {
+    message.error(error?.message || '삭제 중 오류가 발생했습니다')
+  }
+}
+
 // 모든 메뉴 가져오기 (최대 8개까지)
 const topMenus = computed(() => {
-  console.log('portalMenuStore.banners:', portalMenuStore.banners)
   return portalMenuStore.banners || []
 })
 
 // 총 문서 개수
 const totalDocumentCount = computed(() => {
-  console.log('utilStore.flatCategoriesWithMenuTitle:', utilStore.flatCategoriesWithMenuTitle)
   return utilStore.flatCategoriesWithMenuTitle ? utilStore.flatCategoriesWithMenuTitle.length : 0
 })
 
 // 메뉴별 문서 개수 가져오기
 const getMenuDocumentCount = (section) => {
   if (!utilStore.flatCategoriesWithMenuTitle) return 0
-  // section을 title로 변환해서 매칭
   const menu = portalMenuStore.banners.find(m => m.section === section)
-  if (!menu) {
-    console.log('메뉴를 찾을 수 없음:', section)
-    return 0
-  }
+  if (!menu) return 0
 
-  const count = utilStore.flatCategoriesWithMenuTitle.filter(category =>
+  return utilStore.flatCategoriesWithMenuTitle.filter(category =>
     category.menuTitle === menu.title
   ).length
-
-  console.log(`${menu.title} (${section}) 문서 개수:`, count)
-  return count
 }
 
 // 메뉴별 색상 클래스
@@ -771,24 +1368,9 @@ const getMenuColor = (index) => {
   return colors[index] || '#6366f1'
 }
 
-const getCategoryCount = (category) => {
-  return documentStore.getDocumentsByCategory(category).length
-}
-
-const getCategoryColor = (category) => {
-  const colors = {
-    'technology': 'success',
-    'database': 'info',
-    'ai': 'warning',
-    '': 'default'
-  }
-  return colors[category] || 'default'
-}
-
 // Lifecycle
 onMounted(async () => {
   try {
-    // 스토어의 액션을 병렬로 호출
     await Promise.all([
       categoryStore.fetchCategories('P1'),
       portalMenuStore.fetchPortalMenus('P1'),

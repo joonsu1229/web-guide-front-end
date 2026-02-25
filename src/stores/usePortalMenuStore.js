@@ -39,12 +39,59 @@ export const usePortalMenuStore = defineStore('portalMenu', () => {
     }
   }
 
+  async function createPortalMenu(menuDto) {
+    loading.value = true
+    error.value = null
+    try {
+      const data = await portalMenuAPI.createPortalMenu(menuDto)
+      await fetchPortalMenus(menuDto.portalId || 'P1')
+      return data
+    } catch (err) {
+      error.value = err.message || '메뉴 생성 중 오류가 발생했습니다.'
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
+  async function updatePortalMenu(id, menuDto) {
+    loading.value = true
+    error.value = null
+    try {
+      const data = await portalMenuAPI.updatePortalMenu(id, menuDto)
+      await fetchPortalMenus(menuDto.portalId || 'P1')
+      return data
+    } catch (err) {
+      error.value = err.message || '메뉴 수정 중 오류가 발생했습니다.'
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
+  async function deletePortalMenu(id, portalId) {
+    loading.value = true
+    error.value = null
+    try {
+      await portalMenuAPI.deletePortalMenu(id, portalId)
+      await fetchPortalMenus(portalId)
+    } catch (err) {
+      error.value = err.message || '메뉴 삭제 중 오류가 발생했습니다.'
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
   return {
     banners,
     loading,
     error,
     isLoading,
     hasError,
-    fetchPortalMenus
+    fetchPortalMenus,
+    createPortalMenu,
+    updatePortalMenu,
+    deletePortalMenu
   }
 })

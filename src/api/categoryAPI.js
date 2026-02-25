@@ -31,5 +31,53 @@ export const categoryAPI = {
 
     const response = await apiClient.get('/categories', { params })
     return response.data
+  },
+
+  /**
+   * 카테고리를 생성한다.
+   * @param {Object} categoryDto - 생성할 카테고리 정보
+   * @returns {Promise<Object>} 생성된 Category DTO
+   */
+  async createCategory(categoryDto) {
+    const response = await apiClient.post('/categories', categoryDto)
+    return response.data
+  },
+
+  /**
+   * 카테고리를 수정한다.
+   * @param {number|string} id - 수정할 카테고리 ID
+   * @param {string} portalId - 포탈 ID
+   * @param {Object} categoryDto - 수정할 카테고리 정보
+   * @returns {Promise<Object>} 수정된 Category DTO
+   */
+  async updateCategory(id, portalId, categoryDto) {
+    const response = await apiClient.put(`/categories/${id}`, categoryDto, {
+      params: { portalId }
+    })
+    return response.data
+  },
+
+  /**
+   * 카테고리를 비활성화한다.
+   * @param {number|string} id - 비활성화할 카테고리 ID
+   * @param {string} portalId - 포탈 ID
+   * @returns {Promise<void>}
+   */
+  async deactivateCategory(id, portalId) {
+    await apiClient.post(`/categories/${id}/deactivate`, null, {
+      params: { portalId }
+    })
+  },
+
+  /**
+   * 카테고리를 삭제한다.
+   * @param {number|string} id - 삭제할 카테고리 ID
+   * @param {string} portalId - 포탈 ID
+   * @returns {Promise<void>}
+   */
+  async deleteCategory(id, portalId) {
+    await apiClient.delete(`/categories/${id}`, {
+      params: { portalId }
+    })
   }
 }

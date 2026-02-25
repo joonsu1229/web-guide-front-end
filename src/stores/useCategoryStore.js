@@ -46,6 +46,50 @@ export const useCategoryStore = defineStore('category', () => {
     }
   }
 
+  async function createCategory(categoryDto) {
+    loading.value = true
+    error.value = null
+    try {
+      const data = await categoryAPI.createCategory(categoryDto)
+      await fetchCategories(categoryDto.portalId || 'P1')
+      return data
+    } catch (err) {
+      error.value = err.message || '카테고리 생성 중 오류가 발생했습니다.'
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
+  async function updateCategory(id, portalId, categoryDto) {
+    loading.value = true
+    error.value = null
+    try {
+      const data = await categoryAPI.updateCategory(id, portalId, categoryDto)
+      await fetchCategories(portalId)
+      return data
+    } catch (err) {
+      error.value = err.message || '카테고리 수정 중 오류가 발생했습니다.'
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
+  async function deleteCategory(id, portalId) {
+    loading.value = true
+    error.value = null
+    try {
+      await categoryAPI.deleteCategory(id, portalId)
+      await fetchCategories(portalId)
+    } catch (err) {
+      error.value = err.message || '카테고리 삭제 중 오류가 발생했습니다.'
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
   return {
     categoryTrees,
     loading, // 외부(컴포넌트)에서 사용할 수 있도록 반환
@@ -54,6 +98,9 @@ export const useCategoryStore = defineStore('category', () => {
     hasError,
     categories,
     fetchCategoryTree,
-    fetchCategories
+    fetchCategories,
+    createCategory,
+    updateCategory,
+    deleteCategory
   }
 })
